@@ -77,7 +77,6 @@ Get-ChildItem $fileDir -Filter *.txt |
                             Write-Host "Для записи $( $paymentId ) не найдена группа"
                         }
 
-                        Write-Host $currentRow
                         $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
 
                         $partCounter = 2
@@ -108,13 +107,13 @@ Get-ChildItem $fileDir -Filter *.txt |
 $usedRange = $worksheet.UsedRange
 $usedRange.EntireColumn.AutoFit() | Out-Null
 $excel.DisplayAlerts = $false
-$workbook.SaveAs($outputpath, 51, [Type]::Missing, [Type]::Missing, $false, $false, 1, 2)
+# $workbook.SaveAs($outputpath, 51, [Type]::Missing, [Type]::Missing, $false, $false, 1, 2)
 
 [System.GC]::Collect()
 [System.GC]::WaitForPendingFinalizers()
 
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet)
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet) | Out-Null
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
 Remove-Variable -Name excel
 

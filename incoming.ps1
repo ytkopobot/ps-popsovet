@@ -20,24 +20,6 @@ $groupsSheet = $Workbook.Worksheets | Where-Object {
     $_.name -eq "Группы"
 }
 
-$row = 1
-$Column = 1
-$worksheet.Cells.Item($row, $column) = 'Принятые реестры Системы  «Город»'
-
-#merging a few cells on the top row to make the title look nicer
-$MergeCells = $worksheet.Range("A1:G1")
-$MergeCells.Select()
-$MergeCells.MergeCells = $true
-$worksheet.Cells(1, 1).HorizontalAlignment = -4108
-
-$worksheet.Cells.Item(1, 1).Font.Size = 18
-$worksheet.Cells.Item(1, 1).Font.Bold = $True
-$worksheet.Cells.Item(1, 1).Font.Name = "Cambria"
-$worksheet.Cells.Item(1, 1).Font.ThemeFont = 1
-$worksheet.Cells.Item(1, 1).Font.ThemeColor = 4
-$worksheet.Cells.Item(1, 1).Font.ColorIndex = 55
-$worksheet.Cells.Item(1, 1).Font.Color = 8210719
-
 #create the column headers
 $worksheet.Cells.Item(3, 1) = 'Группа'
 $worksheet.Cells.Item(3, 2) = 'Имя'
@@ -49,16 +31,25 @@ $worksheet.Cells.Item(3, 15) = '??'
 
 $xlCellTypeLastCell = 11
 $currentRow = $groupsSheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
+$filesCount = 0
+$paymentAddedCount = 0
+$paymentExistedCount = 0
 Get-ChildItem $fileDir -Filter *.txt |
         Foreach-Object {
+            # Обработка файла
+            $filesCount++
             $lines = Get-Content $_.FullName
             $metadata = New-Object System.Collections.ArrayList
+
+            # Обработка строк в файле
             $lines | Foreach-Object {
                 if ($_ -Match '#') {
                     $value = $_.substring(1)
                     $metadata.Add($value) > $null
                 }
+
                 if ($_ -NotMatch '#') {
+
                     $parts = $_ -split ";"
 
                     $partCounter = 1
@@ -67,14 +58,15 @@ Get-ChildItem $fileDir -Filter *.txt |
                     $FoundById = $worksheet.Cells.Find($paymentId)
                     If ($FoundById) {
                         $existedCell = $worksheet.Cells.Item($FoundById.Row, $FoundById.Column).Text
-                        Write-Host "Запись $( $existedCell ) уже существует"
+                        Write-Host "Запись уже существует: $existedCell" -ForegroundColor Magenta
+                        $paymentExistedCount++
                     } else {
                         $Found = $groupsSheet.Cells.Find($childName)
                         $groupNumber = "??"
                         if($Found){
                             $groupNumber = $groupsSheet.Cells.Item($Found.Row, $Found.Column + 1).Text
                         }else{
-                            Write-Host "Для записи $( $paymentId ) не найдена группа"
+                            Write-Host "Для записи не найдена группа: $paymentId"
                         }
 
                         $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
@@ -84,7 +76,7 @@ Get-ChildItem $fileDir -Filter *.txt |
                             $worksheet.Cells.Item($currentRow, $partCounter) = $_
                             $partCounter++
                         }
-                        $partCounter = 15
+                        $partCounter = 15 # с этой позиции начинаем добавлять метаданные
                         $metadata |  Foreach-Object {
                             $m = $_ -split ";"
                             $worksheet.Cells.Item($currentRow, $partCounter) = $m[0]
@@ -93,6 +85,7 @@ Get-ChildItem $fileDir -Filter *.txt |
                             $partCounter++
 
                         }
+                        $paymentAddedCount++
                         $currentRow++
                     }
 
@@ -101,6 +94,10 @@ Get-ChildItem $fileDir -Filter *.txt |
 
         }
 
+Write-Host "Итого:"
+Write-Host "Обработано $filesCount файлов" -ForegroundColor Green
+Write-Host "Добавлено  $paymentAddedCount строк" -ForegroundColor Green
+Write-Host "Уже существует $paymentExistedCount строк из прочитанных" -ForegroundColor Magenta
 
 #saving & closing the file
 #adjusting the column width so all data's properly visible

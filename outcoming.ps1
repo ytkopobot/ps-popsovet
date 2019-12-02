@@ -13,14 +13,16 @@ $excel = New-Object -ComObject excel.application
 $excel.visible = $true
 $workbook = $excel.Workbooks.Open($excelFilePath)
 
-$groupsSheet = $Workbook.Worksheets | Where-Object {$_.name -eq "Группы"}
+$groupsSheet = $Workbook.Worksheets | Where-Object {
+    $_.name -eq "Общий список"
+}
 
 $xlCellTypeLastCell = 11
 $startRow = 4
 $endRow = $groupsSheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
 
 $newFileName = Get-Date -Format "yyMMdd-HHmm"
-$newFile = "$($outcomingDir)\$($newFileName).txt"
+$newFile = "$( $outcomingDir )\$( $newFileName ).txt"
 New-Item $newFile
 for ($i = $startRow; $i -le $endRow; $i++)
 {
@@ -32,7 +34,7 @@ for ($i = $startRow; $i -le $endRow; $i++)
 }
 
 Write-Host "Итого:"
-Write-Host "Обработано $($endRow - $startRow + 1) чел." -ForegroundColor Green
+Write-Host "Обработано $( $endRow - $startRow + 1 ) чел." -ForegroundColor Green
 
 #saving & closing the file
 $excel.DisplayAlerts = $false

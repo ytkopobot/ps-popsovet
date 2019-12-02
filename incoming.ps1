@@ -17,20 +17,11 @@ $worksheet = $workbook.Worksheets | Where-Object {
     $_.name -eq "Входящие Реестры"
 }
 $groupsSheet = $Workbook.Worksheets | Where-Object {
-    $_.name -eq "Группы"
+    $_.name -eq "Общий список"
 }
 
-#create the column headers
-$worksheet.Cells.Item(3, 1) = 'Группа'
-$worksheet.Cells.Item(3, 2) = 'Имя'
-$worksheet.Cells.Item(3, 3) = 'Адрес'
-$worksheet.Cells.Item(3, 4) = 'Номер договора'
-$worksheet.Cells.Item(3, 5) = 'Сумма'
-$worksheet.Cells.Item(3, 10) = 'Дата'
-$worksheet.Cells.Item(3, 15) = '??'
-
 $xlCellTypeLastCell = 11
-$currentRow = $groupsSheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
+$currentRow = $worksheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
 $filesCount = 0
 $paymentAddedCount = 0
 $paymentExistedCount = 0
@@ -58,15 +49,15 @@ Get-ChildItem $fileDir -Filter *.txt |
                     $FoundById = $worksheet.Cells.Find($paymentId)
                     If ($FoundById) {
                         $existedCell = $worksheet.Cells.Item($FoundById.Row, $FoundById.Column).Text
-                        Write-Host "Запись уже существует: $existedCell" -ForegroundColor Magenta
+                        Write-Host "$paymentId - уже существует $childName" -ForegroundColor Magenta
                         $paymentExistedCount++
                     } else {
                         $Found = $groupsSheet.Cells.Find($childName)
-                        $groupNumber = "??"
+                        $groupNumber = "?"
                         if($Found){
                             $groupNumber = $groupsSheet.Cells.Item($Found.Row, $Found.Column + 1).Text
                         }else{
-                            Write-Host "Для записи не найдена группа: $paymentId"
+                            Write-Host "$paymentId - не найдена группа $childName"
                         }
 
                         $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
@@ -85,6 +76,7 @@ Get-ChildItem $fileDir -Filter *.txt |
                             $partCounter++
 
                         }
+                        Write-Host "$paymentId - запись добавлена $currentRow $childName" -ForegroundColor Green
                         $paymentAddedCount++
                         $currentRow++
                     }

@@ -18,7 +18,7 @@ $groupsSheet = $Workbook.Sheets.Item(2)
 
 $row = 1
 $Column = 1
-$worksheet.Cells.Item($row, $column) = 'Title'
+$worksheet.Cells.Item($row, $column) = 'Принятые реестры Системы  «Город»'
 
 #merging a few cells on the top row to make the title look nicer
 $MergeCells = $worksheet.Range("A1:G1")

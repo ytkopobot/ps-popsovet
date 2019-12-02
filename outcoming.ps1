@@ -31,6 +31,9 @@ for ($i = $startRow; $i -le $endRow; $i++)
     Add-Content $newFile $payment
 }
 
+Write-Host "Итого:"
+Write-Host "Обработано $($endRow - $startRow + 1) чел." -ForegroundColor Green
+
 #saving & closing the file
 $excel.DisplayAlerts = $false
 $excel.Quit()
@@ -38,8 +41,8 @@ $excel.Quit()
 [System.GC]::Collect()
 [System.GC]::WaitForPendingFinalizers()
 
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($groupsSheet)
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($groupsSheet) | Out-Null
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
 Remove-Variable -Name excel
 

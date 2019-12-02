@@ -13,8 +13,12 @@ $excel = New-Object -ComObject excel.application
 $excel.visible = $true
 $workbook = $excel.Workbooks.Open($excelFilePath)
 
-$worksheet = $workbook.Worksheets.Item(1)
-$groupsSheet = $Workbook.Sheets.Item(2)
+$worksheet = $workbook.Worksheets | Where-Object {
+    $_.name -eq "Входящие Реестры"
+}
+$groupsSheet = $Workbook.Worksheets | Where-Object {
+    $_.name -eq "Группы"
+}
 
 $row = 1
 $Column = 1
@@ -35,7 +39,7 @@ $worksheet.Cells.Item(1, 1).Font.ColorIndex = 55
 $worksheet.Cells.Item(1, 1).Font.Color = 8210719
 
 #create the column headers
-$worksheet.Cells.Item(3, 1) = 'Группы'
+$worksheet.Cells.Item(3, 1) = 'Группа'
 $worksheet.Cells.Item(3, 2) = 'Имя'
 $worksheet.Cells.Item(3, 3) = 'Адрес'
 $worksheet.Cells.Item(3, 4) = 'Номер договора'
@@ -43,7 +47,8 @@ $worksheet.Cells.Item(3, 5) = 'Сумма'
 $worksheet.Cells.Item(3, 10) = 'Дата'
 $worksheet.Cells.Item(3, 15) = '??'
 
-$currentRow = 4
+$xlCellTypeLastCell = 11
+$currentRow = $groupsSheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
 Get-ChildItem $fileDir -Filter *.txt |
         Foreach-Object {
             $lines = Get-Content $_.FullName
@@ -53,41 +58,56 @@ Get-ChildItem $fileDir -Filter *.txt |
                     $value = $_.substring(1)
                     $metadata.Add($value) > $null
                 }
-                $metadata |  Foreach-Object {
-                    Write-Host "$($_)"
-                }
                 if ($_ -NotMatch '#') {
                     $parts = $_ -split ";"
 
                     $partCounter = 1
-                    $Found = $groupsSheet.Cells.Find($parts[0])
-                    $worksheet.Cells.Item($currentRow, $partCounter) = $groupsSheet.Cells.Item($Found.Row, $Found.Column + 1)
+                    $childName = $parts[0]
+                    $paymentId = $parts[12]
+                    $FoundById = $worksheet.Cells.Find($paymentId)
+                    If ($FoundById) {
+                        $existedCell = $worksheet.Cells.Item($FoundById.Row, $FoundById.Column).Text
+                        Write-Host "Запись $( $existedCell ) уже существует"
+                    } else {
+                        $Found = $groupsSheet.Cells.Find($childName)
+                        $groupNumber = "??"
+                        if($Found){
+                            $groupNumber = $groupsSheet.Cells.Item($Found.Row, $Found.Column + 1).Text
+                        }else{
+                            Write-Host "Для записи $( $paymentId ) не найдена группа"
+                        }
 
-                    $partCounter = 2
-                    $parts |  Foreach-Object {
-                        $worksheet.Cells.Item($currentRow, $partCounter) = $_
-                        $partCounter++
-                    }
-                    $partCounter = 15
-                    $metadata |  Foreach-Object {
-                        $m = $_ -split ";"
-                        $worksheet.Cells.Item($currentRow, $partCounter) = $m[0]
-                        $partCounter++
-                        $worksheet.Cells.Item($currentRow, $partCounter) = $m[1]
-                        $partCounter++
+                        Write-Host $currentRow
+                        $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
 
+                        $partCounter = 2
+                        $parts |  Foreach-Object {
+                            $worksheet.Cells.Item($currentRow, $partCounter) = $_
+                            $partCounter++
+                        }
+                        $partCounter = 15
+                        $metadata |  Foreach-Object {
+                            $m = $_ -split ";"
+                            $worksheet.Cells.Item($currentRow, $partCounter) = $m[0]
+                            $partCounter++
+                            $worksheet.Cells.Item($currentRow, $partCounter) = $m[1]
+                            $partCounter++
+
+                        }
+                        $currentRow++
                     }
-                    $currentRow++
+
                 }
-
             }
+
         }
+
 
 #saving & closing the file
 #adjusting the column width so all data's properly visible
 $usedRange = $worksheet.UsedRange
 $usedRange.EntireColumn.AutoFit() | Out-Null
-$excel.DisplayAlerts = $true
+$excel.DisplayAlerts = $false
 $workbook.SaveAs($outputpath, 51, [Type]::Missing, [Type]::Missing, $false, $false, 1, 2)
 
 [System.GC]::Collect()

@@ -13,7 +13,7 @@ $excel = New-Object -ComObject excel.application
 $excel.visible = $true
 $workbook = $excel.Workbooks.Open($excelFilePath)
 
-$groupsSheet = $Workbook.Sheets.Item(2)
+$groupsSheet = $Workbook.Worksheets | Where-Object {$_.name -eq "Группы"}
 
 $xlCellTypeLastCell = 11
 $startRow = 4

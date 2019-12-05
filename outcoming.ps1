@@ -4,31 +4,45 @@
 # Specify the path to the Excel file and the WorkSheet Name
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 
-$excelFilePath = "$( $scriptPath )\2019.xlsx" # Update source File Path
-$outcomingDir = "$( $scriptPath )\outcoming"
+Import-Module -Name "$scriptPath\ExcelData\ExcelData.psm1"
 
-Write-Host "$( $excelFilePath )"
+$excelFilePath = "$scriptPath\$ExcelFilename"
+$outcomingDir = "$scriptPath\$OutcomingFolder"
 
 $excel = New-Object -ComObject excel.application
 $excel.visible = $true
 $workbook = $excel.Workbooks.Open($excelFilePath)
 
 $groupsSheet = $Workbook.Worksheets | Where-Object {
-    $_.name -eq "Общий список"
+    $_.name -eq $CommonListSheetName
+}
+if(-Not $groupsSheet){
+    Write-Host "Не найден лист $CommonListSheetName"
+    exit
 }
 
-$xlCellTypeLastCell = 11
-$startRow = 4
 $endRow = $groupsSheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
 
-$newFileName = Get-Date -Format "yyMMdd-HHmm"
-$newFile = "$( $outcomingDir )\$( $newFileName ).txt"
-New-Item $newFile
-for ($i = $startRow; $i -le $endRow; $i++)
+for($i = 1; $i -le 12; $i++){
+    New-Item "$outcomingDir\$($OutcomingFilename.Replace("N", $i)).txt"
+}
+
+$currentSum = 0
+for ($i = 0; $i -le $endRow; $i++)
 {
-    $name = $groupsSheet.Cells.Item($i, 1).Text
-    $group = $groupsSheet.Cells.Item($i, 2).Text
-    $payment = $groupsSheet.Cells.Item($i, 3).Text
+    $newFile = "$outcomingDir\123.txt"
+    New-Item $newFile
+
+    $groupTitle = $groupsSheet.Cells.Item($i, $GroupTitleCell).Text
+    If($groupTitle.StartsWith("#")){
+        # завершаем предыдущие подсчеты и создаём новый файл, обнуляем суммы
+        # https://powershellexplained.com/2018-10-15-Powershell-arrays-Everything-you-wanted-to-know/
+        $currentSum = 0
+
+    }
+    $name = $groupsSheet.Cells.Item($i, $NameCell).Text
+    $group = $groupsSheet.Cells.Item($i, $GroupNumberCell).Text
+    $payment = $groupsSheet.Cells.Item($i, $PaymentCell).Text
     Add-Content $newFile $name
     Add-Content $newFile $payment
 }

@@ -4,28 +4,37 @@
 # Specify the path to the Excel file and the WorkSheet Name
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 
-$excelFilePath = "$( $scriptPath )\2019.xlsx" # Update source File Path
-$fileDir = "$( $scriptPath )\incoming"
+Import-Module -Name "$scriptPath\ExcelData\ExcelData.psm1"
 
-Write-Host "$( $excelFilePath )"
+$excelFilePath = "$scriptPath\$ExcelFilename"
+$incomingDir = "$scriptPath\$IncomingFolder"
 
 $excel = New-Object -ComObject excel.application
 $excel.visible = $true
 $workbook = $excel.Workbooks.Open($excelFilePath)
 
 $worksheet = $workbook.Worksheets | Where-Object {
-    $_.name -eq "Входящие Реестры"
+    $_.name -eq $IncomingLogSheetName
 }
-$groupsSheet = $Workbook.Worksheets | Where-Object {
-    $_.name -eq "Общий список"
+if(-Not $worksheet){
+    Write-Host "Не найден лист $IncomingLogSheetName"
+    exit
 }
 
-$xlCellTypeLastCell = 11
+$groupsSheet = $Workbook.Worksheets | Where-Object {
+    $_.name -eq $CommonListSheetName
+}
+
+if(-Not $groupsSheet){
+    Write-Host "Не найден лист $CommonListSheetName"
+    exit
+}
+
 $currentRow = $worksheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
 $filesCount = 0
 $paymentAddedCount = 0
 $paymentExistedCount = 0
-Get-ChildItem $fileDir -Filter *.txt |
+Get-ChildItem $incomingDir -Filter *.txt |
         Foreach-Object {
             # Обработка файла
             $filesCount++
@@ -46,16 +55,16 @@ Get-ChildItem $fileDir -Filter *.txt |
                     $partCounter = 1
                     $childName = $parts[0]
                     $paymentId = $parts[12]
-                    $FoundById = $worksheet.Cells.Find($paymentId)
+                    $date = $parts[8]
+                    $FoundById = $worksheet.Cells.Find($paymentId) # TODO искать только в этой колонке
                     If ($FoundById) {
-                        $existedCell = $worksheet.Cells.Item($FoundById.Row, $FoundById.Column).Text
                         Write-Host "$paymentId - уже существует $childName" -ForegroundColor Magenta
                         $paymentExistedCount++
                     } else {
                         $Found = $groupsSheet.Cells.Find($childName)
                         $groupNumber = "?"
                         if($Found){
-                            $groupNumber = $groupsSheet.Cells.Item($Found.Row, $Found.Column + 1).Text
+                            $groupNumber = $groupsSheet.Cells.Item($Found.Row, $GroupNumberCell).Text
                         }else{
                             Write-Host "$paymentId - не найдена группа $childName"
                         }
@@ -63,11 +72,14 @@ Get-ChildItem $fileDir -Filter *.txt |
                         $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
 
                         $partCounter = 2
+                        $worksheet.Cells.Item($currentRow, $partCounter) = [datetime]::parseexact($date, 'dd/MM/yyyy', $null).ToString('dd.MM.yyyy')
+
+                        $partCounter = 3
                         $parts |  Foreach-Object {
                             $worksheet.Cells.Item($currentRow, $partCounter) = $_
                             $partCounter++
                         }
-                        $partCounter = 15 # с этой позиции начинаем добавлять метаданные
+                        $partCounter++ # с этой позиции начинаем добавлять метаданные
                         $metadata |  Foreach-Object {
                             $m = $_ -split ";"
                             $worksheet.Cells.Item($currentRow, $partCounter) = $m[0]

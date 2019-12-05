@@ -25,13 +25,15 @@ $groupSheet = $Workbook.Worksheets | Where-Object {
 
 $xlCellTypeLastCell = 11
 $startRow = 4
-$endRow = $listSheet.UsedRange.Rows.Count
+$endRow = $listSheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
+Write-Host "$endRow"
 
 $monthRange = $groupSheet.Range("A4:Z4")
 $monthCell = $monthRange.Find($month)
 
 $childRange = $groupSheet.Range("B:B")
 
+$billCount = 0
 for ($i = $startRow; $i -le $endRow; $i++)
 {
     if ($listSheet.Cells.Item($i, 3).Text -eq $group) {
@@ -40,14 +42,15 @@ for ($i = $startRow; $i -le $endRow; $i++)
 
         if($foundChild){
             $groupSheet.Cells.Item($foundChild.Row, $monthCell.Column) = $listSheet.Cells.Item($i, 4).Text
-            Write-Host "$($foundChild.Row)  $($monthCell.Column)  $($listSheet.Cells.Item($i, 4).Text)"
+            $billCount++
         }else{
             Write-Host "$child не найден"
         }
-
-
     }
 }
+
+Write-Host "Итого:"
+Write-Host "Добавлено $billCount начислений" -ForegroundColor Green
 
 #saving & closing the file
 $excel.DisplayAlerts = $false

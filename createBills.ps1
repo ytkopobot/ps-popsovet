@@ -111,7 +111,7 @@ Function FindAdress($Name, $commonListSheet) {
     $FindedCell = $commonListSheet.Range($NameCell2 + ":" + $NameCell2).EntireColumn.Find($Name)
     $Address = $commonListSheet.Cells.Item($FindedCell.Row, $AddressCell).Value2
     if (-Not $Address){
-        Write-Host "Адрес не найден для $Name"
+        Write-Host "Адрес не найден для $Name" -ForegroundColor Magenta
         return $null
     }
     return $Address

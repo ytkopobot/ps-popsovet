@@ -11,6 +11,9 @@ Import-Module -Name "$scriptPath\ExcelUtils\ExcelUtils.psm1"
 # Выставляем начисления в Систему Город в виде текстовых файлов
 #
 Function Main() {
+    Write-Host "#" -ForegroundColor Yellow
+    Write-Host "# Создаём текстовые файлы для загрузки в Систему Город " -ForegroundColor Yellow
+    Write-Host "#" -ForegroundColor Yellow
     Write-Host "Месяц для начислений [1-12]" -ForegroundColor Green
     [uint16] $month = Read-Host
     $monthName = GetMonthName $month
@@ -125,6 +128,7 @@ Function Main() {
     Write-Host "Добавлено  $rows строк" -ForegroundColor Green
     Write-Host "Пропущено  $skips строк" -ForegroundColor Green
     Write-Host "Общая сумма  $overalSum" -ForegroundColor Green
+    Write-Host "Результат $newFile" -ForegroundColor Green
 
     #saving & closing the file
     #adjusting the column width so all data's properly visible

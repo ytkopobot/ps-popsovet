@@ -1,6 +1,7 @@
 #Файл общего списка с нужной нам информацией
 $ExcelFilename = "2019.xlsx"
 $IncomingLogSheetName = "Взносы"
+$PaymentIdCell = 13
 
 $CommonListSheetName = "Общий список"
 $GroupNumberCell = 1
@@ -31,7 +32,7 @@ $OutcomingFilename = "N группа M 19-20.txt"
 
 $xlCellTypeLastCell = 11
 #TODO некоторые имена очень похожи!!!
-Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, IncomingLogSheetName,`
-    GroupNumberCell, xlCellTypeLastCell, NameCell, PaymentCell, ContractCell, AddressCell, `
+Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, PaymentIdCell, IncomingLogSheetName,`
+    GroupNumberCell, xlCellTypeLastCell, NameCell, ContractCell, AddressCell, `
     OutcomingFilename, GroupTitleCell, SGParts,`
     GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, GroupSheetName, NameColumn, DebtColumn

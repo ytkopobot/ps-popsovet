@@ -6,28 +6,32 @@ $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 Import-Module -Name "$scriptPath\ExcelData\ExcelData.psm1"
 Import-Module -Name "$scriptPath\ExcelUtils\ExcelUtils.psm1"
 
-Function Main(){
+Function Main() {
     $excelFilePath = "$scriptPath\$ExcelFilename"
     $incomingDir = "$scriptPath\$IncomingFolder"
+
+    Write-Host "#" -ForegroundColor Yellow
+    Write-Host "# Читаем текстовые файлы из Системы Город из папки $incomingDir" -ForegroundColor Yellow
+    Write-Host "#" -ForegroundColor Yellow
 
     $excel = New-Object -ComObject excel.application
     $excel.visible = $true
     $workbook = $excel.Workbooks.Open($excelFilePath)
 
     $worksheet = GetSheet $workbook $IncomingLogSheetName
-    if(-Not $worksheet){
+    if (-Not$worksheet) {
         exit
     }
 
     $groupsSheet = GetSheet $workbook $CommonListSheetName
-    if(-Not $groupsSheet){
+    if (-Not$groupsSheet) {
         exit
     }
 
     $currentRow = $worksheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
     $filesCount = 0
     $paymentAddedCount = 0
-    $paymentExistedCount = 0
+    $paymentCount = 0
     Get-ChildItem $incomingDir -Filter *.txt |
             Foreach-Object {
                 # Обработка файла
@@ -43,15 +47,23 @@ Function Main(){
                     }
 
                     if ($_ -NotMatch '#') {
-                        WriteLine $_ $worksheet $groupsSheet $paymentExistedCount $paymentAddedCount $currentRow
+                        $errorMessage = WriteLine $_ $worksheet $groupsSheet $currentRow
+                        if ($errorMessage) {
+                            Write-Host $errorMessage -ForegroundColor Magenta
+                        } else {
+                            Write-Host "добавлена строка $currentRow" -ForegroundColor Green
+                            $currentRow++
+                            $paymentAddedCount++
+                        }
+                        $paymentCount++
                     }
                 }
             }
 
     Write-Host "Итого:"
-    Write-Host "Обработано $filesCount файлов" -ForegroundColor Green
+    Write-Host "Обработано $filesCount файлов, $paymentCount строк" -ForegroundColor Green
     Write-Host "Добавлено  $paymentAddedCount строк" -ForegroundColor Green
-    Write-Host "Уже существует $paymentExistedCount строк из прочитанных" -ForegroundColor Magenta
+    Write-Host "Лист '$IncomingLogSheetName' файла $excelFilePath" -ForegroundColor Magenta
 
     #saving & closing the file
     #adjusting the column width so all data's properly visible
@@ -69,7 +81,7 @@ Function Main(){
     Remove-Variable -Name excel
 }
 
-Function WriteLine($line, $worksheet, $groupsSheet, $paymentExistedCount, $paymentAddedCount, $currentRow){
+Function WriteLine($line, $worksheet, $groupsSheet, $currentRow) {
     $parts = $line -split ";"
 
     $partCounter = 1
@@ -78,41 +90,38 @@ Function WriteLine($line, $worksheet, $groupsSheet, $paymentExistedCount, $payme
     $paymentId = $parts[$SGParts."paymentId"]
     $date = $parts[$SGParts."date"]
 
-    $FoundById = $worksheet.Cells.Find($paymentId) # TODO искать только в этой колонке
-    If ($FoundById) {
-        Write-Host "$paymentId  - уже существует $childName" -ForegroundColor Magenta
-        $paymentExistedCount++
+    $range = GetColumnRange($PaymentIdCell)
+    $FindedCell = $worksheet.Range($range).EntireColumn.Find($paymentId)
+
+    If ($FindedCell) {
+        return "$paymentId - уже существует, строка $($FindedCell.Row), $childName";
+    }
+    $Found = $groupsSheet.Cells.Find($childName)
+    $groupNumber = "?"
+    if ($Found) {
+        $groupNumber = $groupsSheet.Cells.Item($Found.Row, $GroupNumberCell).Text
     } else {
-        $Found = $groupsSheet.Cells.Find($childName)
-        $groupNumber = "?"
-        if($Found){
-            $groupNumber = $groupsSheet.Cells.Item($Found.Row, $GroupNumberCell).Text
-        }else{
-            Write-Host "$paymentId - не найдена группа $childName"
-        }
+        return "$paymentId - не найдена группа $childName";
+    }
 
-        $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
+    $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
 
-        $partCounter = 2
-        $worksheet.Cells.Item($currentRow, $partCounter) = [datetime]::parseexact($date, 'dd/MM/yyyy', $null).ToString('dd.MM.yyyy')
+    $partCounter = 2
+    $worksheet.Cells.Item($currentRow, $partCounter) = [datetime]::parseexact($date, 'dd/MM/yyyy', $null).ToString('dd.MM.yyyy')
 
-        $partCounter = 3 # пишем все атрибуты платежа
-        $parts |  Foreach-Object {
-            $worksheet.Cells.Item($currentRow, $partCounter) = $_
-            $partCounter++
-        }
-        $partCounter++ # с этой позиции начинаем добавлять метаданные
-        $metadata |  Foreach-Object {
-            $m = $_ -split ";"
-            $worksheet.Cells.Item($currentRow, $partCounter) = $m[0]
-            $partCounter++
-            $worksheet.Cells.Item($currentRow, $partCounter) = $m[1]
-            $partCounter++
+    $partCounter = 3 # пишем все атрибуты платежа
+    $parts |  Foreach-Object {
+        $worksheet.Cells.Item($currentRow, $partCounter) = $_
+        $partCounter++
+    }
+    $partCounter++ # с этой позиции начинаем добавлять метаданные
+    $metadata |  Foreach-Object {
+        $m = $_ -split ";"
+        $worksheet.Cells.Item($currentRow, $partCounter) = $m[0]
+        $partCounter++
+        $worksheet.Cells.Item($currentRow, $partCounter) = $m[1]
+        $partCounter++
 
-        }
-        Write-Host "$paymentId - запись добавлена $currentRow $childName" -ForegroundColor Green
-        $paymentAddedCount++
-        $currentRow++
     }
 }
 

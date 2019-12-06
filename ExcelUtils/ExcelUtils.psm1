@@ -34,7 +34,7 @@ function GetColumn($index) {
 }
 
 function GetColumnRange($index){
-    $column =  GetColumn($NameCell)
+    $column =  GetColumn($index)
     return "$($column):$($column)"
 }
 Export-ModuleMember -Function 'GetSheet', 'GetMonthName', 'GetColumn', 'GetColumnRange'

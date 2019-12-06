@@ -108,7 +108,8 @@ Function Main() {
 }
 
 Function FindAdress($Name, $commonListSheet) {
-    $FindedCell = $commonListSheet.Range($NameCell2 + ":" + $NameCell2).EntireColumn.Find($Name)
+    $range = GetColumnRange($NameCell)
+    $FindedCell = $commonListSheet.Range($range).EntireColumn.Find($Name)
     $Address = $commonListSheet.Cells.Item($FindedCell.Row, $AddressCell).Value2
     if (-Not $Address){
         Write-Host "Адрес не найден для $Name" -ForegroundColor Magenta
@@ -118,8 +119,8 @@ Function FindAdress($Name, $commonListSheet) {
 }
 
 Function FindContract($Name, $commonListSheet) {
-    $column =  GetColumn($NameCell)
-    $FindedCell = $commonListSheet.Range("$($column):$($column)").EntireColumn.Find($Name)
+    $range = GetColumnRange($NameCell)
+    $FindedCell = $commonListSheet.Range($range).EntireColumn.Find($Name)
     $Contract = $commonListSheet.Cells.Item($FindedCell.Row, $ContractCell).Value2
     if (-Not $Contract){
         Write-Host "Номер договора не найден для $Name"

@@ -32,4 +32,9 @@ function GetColumn($index) {
     }
     return $letters[$index-1]
 }
-Export-ModuleMember -Function 'GetSheet', 'GetMonthName', 'GetColumn'
+
+function GetColumnRange($index){
+    $column =  GetColumn($NameCell)
+    return "$($column):$($column)"
+}
+Export-ModuleMember -Function 'GetSheet', 'GetMonthName', 'GetColumn', 'GetColumnRange'

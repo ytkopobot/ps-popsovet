@@ -12,12 +12,12 @@ Import-Module -Name "$scriptPath\ExcelUtils\ExcelUtils.psm1"
 #
 Function Main() {
     Write-Host "Месяц для начислений [1-12]" -ForegroundColor Green
-    $month = Read-Host
+    [uint16] $month = 1 #Read-Host
     $monthName = GetMonthName $month
     Write-Host "$monthName"
 
     Write-Host "Номер группы [1-12]" -ForegroundColor Green
-    $group = Read-Host
+    $group = 1 #Read-Host
 
     $excelFilePath = "$scriptPath\$ExcelFilename"
     $outcomingDir = "$scriptPath\$OutcomingFolder"
@@ -34,7 +34,8 @@ Function Main() {
     }
 
     $excel = New-Object -ComObject excel.application
-    $excel.visible = $true
+    $excel.visible = $false
+    $excel.DisplayAlerts = $false
     $workbook = $excel.Workbooks.Open($excelFilePath)
     $groupbook = $excel.Workbooks.Open($groupFilePath)
 
@@ -52,7 +53,9 @@ Function Main() {
     $endRow = $groupsheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
 
     $newFile = "$outcomingDir\$($OutcomingFilename.Replace("N", $group).Replace("M", $monthName) )"
-    New-Item $newFile
+    if (-Not [System.IO.File]::Exists($newFile)){
+        New-Item $newFile | Out-Null
+    }
     Add-Content $newFile "#TYPE 7"
     Add-Content $newFile "#SERVICE 40334"
 
@@ -64,16 +67,16 @@ Function Main() {
         $CommonFondSum = $groupsheet.Cells.Item($i, $CommonFondColumn).Value2
         $GroupFondSum = $groupsheet.Cells.Item($i, $GroupFondColumn).Value2
         $Name = $groupsheet.Cells.Item($i, $NameColumn).Text
-        $Adress = FindAdress
-        if(-Not $Adress){
-            continue
-        }
-        $Contract = FindContract
-        if(-Not $Contract){
-            continue
-        }
-        if ($Name.StartsWith("#")){
+        if ( $Name.StartsWith("#")) {
             Write-Host "Строка $i пропущена, т.к. начинается с #"
+            continue
+        }
+        $Adress = FindAdress $Name $commonListSheet
+        if (-Not$Adress) {
+            continue
+        }
+        $Contract = FindContract $Name $commonListSheet
+        if (-Not$Contract) {
             continue
         }
         if ($CommonFondSum -and $GroupFondSum -and $Name) {
@@ -87,11 +90,13 @@ Function Main() {
 
     Write-Host "Итого:"
     Write-Host "Добавлено  $rows строк" -ForegroundColor Green
+    Write-Host "Общая сумма  $overalSum" -ForegroundColor Green
 
     #saving & closing the file
     #adjusting the column width so all data's properly visible
     $usedRange = $groupsheet.UsedRange
     $excel.DisplayAlerts = $false
+    $excel.Quit()
 
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
@@ -102,12 +107,25 @@ Function Main() {
     Remove-Variable -Name excel
 }
 
-Function FindAdress(){
-    return "Сиреневая"
+Function FindAdress($Name, $commonListSheet) {
+    $FindedCell = $commonListSheet.Range($NameCell2 + ":" + $NameCell2).EntireColumn.Find($Name)
+    $Address = $commonListSheet.Cells.Item($FindedCell.Row, $AddressCell).Value2
+    if (-Not $Address){
+        Write-Host "Адрес не найден для $Name"
+        return $null
+    }
+    return $Address
 }
 
-Function FindContract(){
-    return "123"
+Function FindContract($Name, $commonListSheet) {
+    $column =  GetColumn($NameCell)
+    $FindedCell = $commonListSheet.Range("$($column):$($column)").EntireColumn.Find($Name)
+    $Contract = $commonListSheet.Cells.Item($FindedCell.Row, $ContractCell).Value2
+    if (-Not $Contract){
+        Write-Host "Номер договора не найден для $Name"
+        return $null
+    }
+    return $Contract
 }
 Main
 

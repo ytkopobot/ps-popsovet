@@ -6,8 +6,9 @@ $IncomingLogSheetName = "Взносы"
 $CommonListSheetName = "Общий список"
 $GroupNumberCell = 1
 $NameCell = 3
-$GroupTitleCell = 3
-$PaymentCell = 4
+$NameCell2 = "C"
+$ContractCell = 5
+$AddressCell = 6
 
 #Файл с группами содержит информацию для групп
 $GroupExcel = "N группа.xlsx"
@@ -34,5 +35,6 @@ $GroupCount = 12 # TODO проверить, возможно уже не нужна
 $xlCellTypeLastCell = 11
 #TODO некоторые имена очень похожи!!!
 Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, IncomingLogSheetName,`
-    GroupNumberCell, xlCellTypeLastCell, NameCell, PaymentCell, OutcomingFilename, GroupCount, GroupTitleCell, SGParts,`
+    GroupNumberCell, xlCellTypeLastCell, NameCell, NameCell2, PaymentCell, ContractCell, AddressCell, `
+    OutcomingFilename, GroupCount, GroupTitleCell, SGParts,`
     GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, GroupSheetName, NameColumn

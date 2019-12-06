@@ -1,6 +1,5 @@
+#Файл общего списка с нужной нам информацией
 $ExcelFilename = "2019.xlsx"
-$OutcomingFolder = "outcoming"
-$IncomingFolder = "incoming"
 
 $IncomingLogSheetName = "Взносы"
 
@@ -10,9 +9,14 @@ $NameCell = 3
 $GroupTitleCell = 3
 $PaymentCell = 4
 
-$OutcomingFilename = "N группа 19-20.txt"
+#Файл с группами содержит информацию для групп
+$GroupExcel = "N группа.xlsx"
+$GroupSheetName = "Взносы"
+$GroupStartRow = 6 # c какой строчки начинаются фамилии
+$NameColumn = 2   # Сумма взноса в фонд сада
+$CommonFondColumn = 4   # Сумма взноса в фонд сада
+$GroupFondColumn = 5  # Сумма взноса в фонд группы
 
-$GroupCount = 12
 
 
 $SGParts = New-Object -Type PSObject -Property @{
@@ -21,6 +25,14 @@ $SGParts = New-Object -Type PSObject -Property @{
     'paymentId' = 10
 }
 
+$OutcomingFolder = "outcoming"
+$IncomingFolder = "incoming"
+$OutcomingFilename = "N группа M 19-20.txt"
+$GroupCount = 12 # TODO проверить, возможно уже не нужна
+
 
 $xlCellTypeLastCell = 11
-Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, IncomingLogSheetName, GroupNumberCell, xlCellTypeLastCell, NameCell, PaymentCell, OutcomingFilename, GroupCount, GroupTitleCell, SGParts
+#TODO некоторые имена очень похожи!!!
+Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, IncomingLogSheetName,`
+    GroupNumberCell, xlCellTypeLastCell, NameCell, PaymentCell, OutcomingFilename, GroupCount, GroupTitleCell, SGParts,`
+    GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, GroupSheetName, NameColumn

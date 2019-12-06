@@ -1,66 +1,115 @@
+#$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-[Console]::InputEncoding = [System.Text.Encoding]::UTF8
 
 # Specify the path to the Excel file and the WorkSheet Name
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+Import-Module -Name "$scriptPath\ExcelData\ExcelData.psm1"
+Import-Module -Name "$scriptPath\ExcelUtils\ExcelUtils.psm1"
 
-$excelFilePath = "$( $scriptPath )\2019.xlsx" # Update source File Path
 
-Write-Host "$( $excelFilePath )"
+#
+# Выставляем начисления в Систему Город в виде текстовых файлов
+#
+Function Main() {
+    Write-Host "Месяц для начислений [1-12]" -ForegroundColor Green
+    $month = Read-Host
+    $monthName = GetMonthName $month
+    Write-Host "$monthName"
 
-$month = Read-Host -Prompt 'Месяц для начислений'
-$group = Read-Host -Prompt 'Номер группы'
+    Write-Host "Номер группы [1-12]" -ForegroundColor Green
+    $group = Read-Host
 
-$excel = New-Object -ComObject excel.application
-$excel.visible = $true
-$workbook = $excel.Workbooks.Open($excelFilePath)
+    $excelFilePath = "$scriptPath\$ExcelFilename"
+    $outcomingDir = "$scriptPath\$OutcomingFolder"
+    $groupFilePath = "$scriptPath\$($GroupExcel.Replace("N", $group) )"
 
-$listSheet = $Workbook.Worksheets | Where-Object {
-    $_.name -eq "Общий список"
-}
+    if (-Not [System.IO.File]::Exists($excelFilePath)) {
+        Write-Host "Файл не найден $excelFilePath"
+        exit
+    }
 
-$groupSheet = $Workbook.Worksheets | Where-Object {
-    $_.name -eq "$group группа"
-}
+    if (-Not [System.IO.File]::Exists($groupFilePath)) {
+        Write-Host "Файл не найден $groupFilePath"
+        exit
+    }
 
-$xlCellTypeLastCell = 11
-$startRow = 4
-$endRow = $listSheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
-Write-Host "$endRow"
+    $excel = New-Object -ComObject excel.application
+    $excel.visible = $true
+    $workbook = $excel.Workbooks.Open($excelFilePath)
+    $groupbook = $excel.Workbooks.Open($groupFilePath)
 
-$monthRange = $groupSheet.Range("A4:Z4")
-$monthCell = $monthRange.Find($month)
+    $groupsheet = GetSheet $groupbook $GroupSheetName
+    if (-Not$groupsheet) {
+        exit
+    }
 
-$childRange = $groupSheet.Range("B:B")
+    $commonListSheet = GetSheet $workbook $CommonListSheetName
+    if (-Not$commonListSheet) {
+        exit
+    }
 
-$billCount = 0
-for ($i = $startRow; $i -le $endRow; $i++)
-{
-    if ($listSheet.Cells.Item($i, 3).Text -eq $group) {
-        $child = $listSheet.Cells.Item($i, 2).Text
-        $foundChild = $childRange.Find($child)
+    $startRow = $GroupStartRow
+    $endRow = $groupsheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
 
-        if($foundChild){
-            $groupSheet.Cells.Item($foundChild.Row, $monthCell.Column) = $listSheet.Cells.Item($i, 4).Text
-            $billCount++
-        }else{
-            Write-Host "$child не найден"
+    $newFile = "$outcomingDir\$($OutcomingFilename.Replace("N", $group).Replace("M", $monthName) )"
+    New-Item $newFile
+    Add-Content $newFile "#TYPE 7"
+    Add-Content $newFile "#SERVICE 40334"
+
+    $overalSum = 0
+    $rows = 0
+
+    for ($i = $startRow; $i -le $endRow; $i++)
+    {
+        $CommonFondSum = $groupsheet.Cells.Item($i, $CommonFondColumn).Value2
+        $GroupFondSum = $groupsheet.Cells.Item($i, $GroupFondColumn).Value2
+        $Name = $groupsheet.Cells.Item($i, $NameColumn).Text
+        $Adress = FindAdress
+        if(-Not $Adress){
+            continue
+        }
+        $Contract = FindContract
+        if(-Not $Contract){
+            continue
+        }
+        if ($Name.StartsWith("#")){
+            Write-Host "Строка $i пропущена, т.к. начинается с #"
+            continue
+        }
+        if ($CommonFondSum -and $GroupFondSum -and $Name) {
+            Add-Content $newFile "$Name;$Adress;$Contract;$( $CommonFondSum + $GroupFondSum )"
+            $rows++
+            $overalSum = $overalSum + $CommonFondSum + $GroupFondSum
         }
     }
+
+    Add-Content $newFile "#FILESUM $overalSum"
+
+    Write-Host "Итого:"
+    Write-Host "Добавлено  $rows строк" -ForegroundColor Green
+
+    #saving & closing the file
+    #adjusting the column width so all data's properly visible
+    $usedRange = $groupsheet.UsedRange
+    $excel.DisplayAlerts = $false
+
+    [System.GC]::Collect()
+    [System.GC]::WaitForPendingFinalizers()
+
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($groupsheet) | Out-Null
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
+
+    Remove-Variable -Name excel
 }
 
-Write-Host "Итого:"
-Write-Host "Добавлено $billCount начислений" -ForegroundColor Green
+Function FindAdress(){
+    return "Сиреневая"
+}
 
-#saving & closing the file
-$excel.DisplayAlerts = $false
+Function FindContract(){
+    return "123"
+}
+Main
 
-[System.GC]::Collect()
-[System.GC]::WaitForPendingFinalizers()
-
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($listSheet) | Out-Null
-[System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
-
-Remove-Variable -Name excel
 
 

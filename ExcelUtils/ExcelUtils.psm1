@@ -8,4 +8,17 @@ function GetSheet ($workbook, $sheetName){
     }
     return $worksheet
 }
-Export-ModuleMember -Function 'GetSheet'
+
+function GetMonthName ($month){
+    if (-Not $month){
+        Write-Host "ћес€ц не указан"
+        return $null
+    }
+    if(($month -lt 1) -or ($month -gt 12)){
+        Write-Host "Ќеверный мес€ц: $month"
+        return $null
+    }
+    return  @("€нварь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сент€брь", "окт€брь", "но€брь", "декабрь")[$month-1]
+}
+
+Export-ModuleMember -Function 'GetSheet', 'GetMonthName'

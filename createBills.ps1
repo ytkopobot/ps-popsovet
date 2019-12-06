@@ -16,7 +16,7 @@ Function Main() {
     $monthName = GetMonthName $month
     Write-Host "$monthName"
 
-    if (-Not $monthName){
+    if (-Not$monthName) {
         exit
     }
 
@@ -65,6 +65,7 @@ Function Main() {
 
     $overalSum = 0
     $rows = 0
+    $skips = 0
 
     for ($i = $startRow; $i -le $endRow; $i++)
     {
@@ -80,23 +81,28 @@ Function Main() {
         }
         $Adress = FindAdress $Name $commonListSheet
         if (-Not$Adress) {
+            $skips++
             continue
         }
         $Contract = FindContract $Name $commonListSheet
         if (-Not$Contract) {
+            $skips++
             continue
         }
 
         $ForDebt = $groupsheet.Cells.Item($i, 1).Text # по остатку TODO переделать если надо будет
 
         $currentSum = 0
-        if ($ForDebt -ieq "д") { # вынести в конфигурацию
-            if ((-Not $currentDebt) -or ($currentDebt -eq 0)) {
+        if ($ForDebt -ieq "д") {
+        # вынести в конфигурацию
+            if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {
                 Write-Host "Долга нет, начисление будет пропущено для $Name"
+                $skips++
                 continue;
             }
-            if($currentDebt -lt 0){
+            if ($currentDebt -lt 0) {
                 Write-Host "Долг отрицательный, начисление будет пропущено для $Name"
+                $skips++
                 continue;
             }
             $currentSum = $currentDebt
@@ -104,6 +110,7 @@ Function Main() {
             $currentSum = $CommonFondSum + $GroupFondSum
             if ($currentSum -le 0) {
                 Write-Host "Сумма взноса не установлена, начисление будет пропущено для $Name"
+                $skips++
                 continue;
             }
         }
@@ -116,6 +123,7 @@ Function Main() {
 
     Write-Host "Итого:"
     Write-Host "Добавлено  $rows строк" -ForegroundColor Green
+    Write-Host "Пропущено  $skips строк" -ForegroundColor Green
     Write-Host "Общая сумма  $overalSum" -ForegroundColor Green
 
     #saving & closing the file

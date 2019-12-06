@@ -12,12 +12,12 @@ Import-Module -Name "$scriptPath\ExcelUtils\ExcelUtils.psm1"
 #
 Function Main() {
     Write-Host "Месяц для начислений [1-12]" -ForegroundColor Green
-    [uint16] $month = 1 #Read-Host
+    [uint16] $month = Read-Host
     $monthName = GetMonthName $month
     Write-Host "$monthName"
 
     Write-Host "Номер группы [1-12]" -ForegroundColor Green
-    $group = 1 #Read-Host
+    $group = Read-Host
 
     $excelFilePath = "$scriptPath\$ExcelFilename"
     $outcomingDir = "$scriptPath\$OutcomingFolder"

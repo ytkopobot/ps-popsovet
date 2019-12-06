@@ -16,6 +16,7 @@ $GroupStartRow = 6 # c какой строчки начинаются фамилии
 $NameColumn = 2   # Сумма взноса в фонд сада
 $CommonFondColumn = 4   # Сумма взноса в фонд сада
 $GroupFondColumn = 5  # Сумма взноса в фонд группы
+$DebtColumn = 21  # Сумма долга
 
 
 
@@ -36,4 +37,4 @@ $xlCellTypeLastCell = 11
 Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, IncomingLogSheetName,`
     GroupNumberCell, xlCellTypeLastCell, NameCell, PaymentCell, ContractCell, AddressCell, `
     OutcomingFilename, GroupCount, GroupTitleCell, SGParts,`
-    GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, GroupSheetName, NameColumn
+    GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, GroupSheetName, NameColumn, DebtColumn

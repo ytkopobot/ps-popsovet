@@ -16,6 +16,10 @@ Function Main() {
     $monthName = GetMonthName $month
     Write-Host "$monthName"
 
+    if (-Not $monthName){
+        exit
+    }
+
     Write-Host "Номер группы [1-12]" -ForegroundColor Green
     $group = Read-Host
 
@@ -53,7 +57,7 @@ Function Main() {
     $endRow = $groupsheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
 
     $newFile = "$outcomingDir\$($OutcomingFilename.Replace("N", $group).Replace("M", $monthName) )"
-    if (-Not [System.IO.File]::Exists($newFile)){
+    if (-Not [System.IO.File]::Exists($newFile)) {
         New-Item $newFile | Out-Null
     }
     Add-Content $newFile "#TYPE 7"
@@ -66,9 +70,12 @@ Function Main() {
     {
         $CommonFondSum = $groupsheet.Cells.Item($i, $CommonFondColumn).Value2
         $GroupFondSum = $groupsheet.Cells.Item($i, $GroupFondColumn).Value2
+        $currentDebt = $groupsheet.Cells.Item($i, $DebtColumn).Value2
         $Name = $groupsheet.Cells.Item($i, $NameColumn).Text
+        if (-Not$Name) {
+            continue;
+        }
         if ( $Name.StartsWith("#")) {
-            Write-Host "Строка $i пропущена, т.к. начинается с #"
             continue
         }
         $Adress = FindAdress $Name $commonListSheet
@@ -79,11 +86,30 @@ Function Main() {
         if (-Not$Contract) {
             continue
         }
-        if ($CommonFondSum -and $GroupFondSum -and $Name) {
-            Add-Content $newFile "$Name;$Adress;$Contract;$( $CommonFondSum + $GroupFondSum )"
-            $rows++
-            $overalSum = $overalSum + $CommonFondSum + $GroupFondSum
+
+        $ForDebt = $groupsheet.Cells.Item($i, 1).Text # по остатку TODO переделать если надо будет
+
+        $currentSum = 0
+        if ($ForDebt -ieq "д") { # вынести в конфигурацию
+            if ((-Not $currentDebt) -or ($currentDebt -eq 0)) {
+                Write-Host "Долга нет, начисление будет пропущено для $Name"
+                continue;
+            }
+            if($currentDebt -lt 0){
+                Write-Host "Долг отрицательный, начисление будет пропущено для $Name"
+                continue;
+            }
+            $currentSum = $currentDebt
+        } else {
+            $currentSum = $CommonFondSum + $GroupFondSum
+            if ($currentSum -le 0) {
+                Write-Host "Сумма взноса не установлена, начисление будет пропущено для $Name"
+                continue;
+            }
         }
+        Add-Content $newFile "$Name;$Adress;$Contract;$currentSum"
+        $rows++
+        $overalSum = $overalSum + $currentSum
     }
 
     Add-Content $newFile "#FILESUM $overalSum"
@@ -111,7 +137,7 @@ Function FindAdress($Name, $commonListSheet) {
     $range = GetColumnRange($NameCell)
     $FindedCell = $commonListSheet.Range($range).EntireColumn.Find($Name)
     $Address = $commonListSheet.Cells.Item($FindedCell.Row, $AddressCell).Value2
-    if (-Not $Address){
+    if (-Not$Address) {
         Write-Host "Адрес не найден для $Name" -ForegroundColor Magenta
         return $null
     }
@@ -122,7 +148,7 @@ Function FindContract($Name, $commonListSheet) {
     $range = GetColumnRange($NameCell)
     $FindedCell = $commonListSheet.Range($range).EntireColumn.Find($Name)
     $Contract = $commonListSheet.Cells.Item($FindedCell.Row, $ContractCell).Value2
-    if (-Not $Contract){
+    if (-Not$Contract) {
         Write-Host "Номер договора не найден для $Name"
         return $null
     }

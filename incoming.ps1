@@ -53,9 +53,10 @@ Get-ChildItem $incomingDir -Filter *.txt |
                     $parts = $_ -split ";"
 
                     $partCounter = 1
-                    $childName = $parts[0]
-                    $paymentId = $parts[12]
-                    $date = $parts[8]
+
+                    $childName = $parts[$SGParts."childName"]
+                    $paymentId = $parts[$SGParts."paymentId"]
+                    $date = $parts[$SGParts."date"]
                     $FoundById = $worksheet.Cells.Find($paymentId) # TODO искать только в этой колонке
                     If ($FoundById) {
                         Write-Host "$paymentId - уже существует $childName" -ForegroundColor Magenta

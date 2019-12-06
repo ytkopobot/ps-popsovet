@@ -15,5 +15,12 @@ $OutcomingFilename = "N группа 19-20.txt"
 $GroupCount = 12
 
 
+$SGParts = New-Object -Type PSObject -Property @{
+    'childName'   = 0
+    'date' = 8
+    'paymentId' = 10
+}
+
+
 $xlCellTypeLastCell = 11
-Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, IncomingLogSheetName, GroupNumberCell, xlCellTypeLastCell, NameCell, PaymentCell, OutcomingFilename, GroupCount, GroupTitleCell
+Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, IncomingFolder, IncomingLogSheetName, GroupNumberCell, xlCellTypeLastCell, NameCell, PaymentCell, OutcomingFilename, GroupCount, GroupTitleCell, SGParts

@@ -76,6 +76,7 @@ Function Main() {
     [System.GC]::WaitForPendingFinalizers()
 
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet) | Out-Null
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($groupsSheet) | Out-Null
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel

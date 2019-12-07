@@ -30,11 +30,34 @@ function GetColumn($index) {
         Write-Host "Не указан индекс"
         return $null
     }
-    return $letters[$index-1]
+    return $letters[$index - 1]
 }
 
-function GetColumnRange($index){
-    $column =  GetColumn($index)
-    return "$($column):$($column)"
+function GetColumnRange($index) {
+    $column = GetColumn($index)
+    return "$( $column ):$( $column )"
 }
-Export-ModuleMember -Function 'GetSheet', 'GetMonthName', 'GetColumn', 'GetColumnRange'
+
+function CheckFileOpen {
+    param ([parameter(Mandatory = $true)][string]$Path)
+
+    $oFile = New-Object System.IO.FileInfo $Path
+
+    if ((Test-Path -Path $Path) -eq $false) {
+        return $false
+    }
+
+    try {
+        $oStream = $oFile.Open([System.IO.FileMode]::Open, [System.IO.FileAccess]::ReadWrite, [System.IO.FileShare]::None)
+
+        if ($oStream) {
+            $oStream.Close()
+        }
+        $false
+    } catch {
+        # file is locked by a process.
+        Write-Host "Файл $Path уже открыт. Для выполнения программы сохраните все изменения и закройте его" -ForegroundColor Cyan
+        return $true
+    }
+}
+Export-ModuleMember -Function 'GetSheet', 'GetMonthName', 'GetColumn', 'GetColumnRange', "CheckFileOpen"

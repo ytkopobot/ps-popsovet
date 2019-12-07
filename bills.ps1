@@ -27,18 +27,17 @@ Function Main() {
     $group = Read-Host
 
     $excelFilePath = "$scriptPath\$ExcelFilename"
-    $outcomingDir = "$scriptPath\$OutcomingFolder"
-    $groupFilePath = "$scriptPath\$($GroupExcel.Replace("N", $group) )"
-
     if (-Not [System.IO.File]::Exists($excelFilePath)) {
-        Write-Host "Файл не найден $excelFilePath"
+        Write-Host "Файл не найден $excelFilePath" -ForegroundColor Red
         exit
     }
 
     if (-Not [System.IO.File]::Exists($groupFilePath)) {
-        Write-Host "Файл не найден $groupFilePath"
+        Write-Host "Файл не найден $groupFilePath" -ForegroundColor Red
         exit
     }
+
+    $outcomingDir = "$scriptPath\$OutcomingFolder"
 
     $excel = New-Object -ComObject excel.application
     $excel.visible = $false
@@ -97,7 +96,7 @@ Function Main() {
 
         $currentSum = 0
         if ($ForDebt -ieq "д") {
-        # вынести в конфигурацию
+            # вынести в конфигурацию
             if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {
                 Write-Host "Долга нет, начисление будет пропущено для $Name"
                 $skips++
@@ -132,7 +131,6 @@ Function Main() {
 
     #saving & closing the file
     #adjusting the column width so all data's properly visible
-    $usedRange = $groupsheet.UsedRange
     $excel.DisplayAlerts = $false
     $excel.Quit()
 
@@ -140,6 +138,7 @@ Function Main() {
     [System.GC]::WaitForPendingFinalizers()
 
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($groupsheet) | Out-Null
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($commonListSheet) | Out-Null
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel

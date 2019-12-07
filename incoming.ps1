@@ -80,6 +80,9 @@ Function Main() {
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel
+
+    Write-Host "Для завершения нажмите Enter" -ForegroundColor Blue
+    Read-Host
 }
 
 Function WriteLine($line, $worksheet, $groupsSheet, $currentRow) {
@@ -95,7 +98,7 @@ Function WriteLine($line, $worksheet, $groupsSheet, $currentRow) {
     $FindedCell = $worksheet.Range($range).EntireColumn.Find($paymentId)
 
     If ($FindedCell) {
-        return "$paymentId - уже существует, строка $($FindedCell.Row), $childName";
+        return "$paymentId - уже существует, строка $( $FindedCell.Row ), $childName";
     }
     $Found = $groupsSheet.Cells.Find($childName)
     $groupNumber = "?"

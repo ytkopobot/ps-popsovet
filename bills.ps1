@@ -24,16 +24,17 @@ Function Main() {
     }
 
     Write-Host "Номер группы [1-12]" -ForegroundColor Green
-    $group = Read-Host
+    $groupNumber = Read-Host
 
     $excelFilePath = "$scriptPath\$ExcelFilename"
     if (-Not [System.IO.File]::Exists($excelFilePath)) {
-        Write-Host "Файл не найден $excelFilePath" -ForegroundColor Red
+        Write-Host "Файл $ExcelFilename не найден $excelFilePath" -ForegroundColor Red
         exit
     }
 
+    $groupFilePath = "$scriptPath\$($GroupExcel.Replace("N", $groupNumber) )"
     if (-Not [System.IO.File]::Exists($groupFilePath)) {
-        Write-Host "Файл не найден $groupFilePath" -ForegroundColor Red
+        Write-Host "Файл группы не найден $groupFilePath" -ForegroundColor Red
         exit
     }
 
@@ -58,7 +59,7 @@ Function Main() {
     $startRow = $GroupStartRow
     $endRow = $groupsheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
 
-    $newFile = "$outcomingDir\$($OutcomingFilename.Replace("N", $group).Replace("M", $monthName) )"
+    $newFile = "$outcomingDir\$($OutcomingFilename.Replace("N", $groupNumber).Replace("M", $monthName) )"
     if (-Not [System.IO.File]::Exists($newFile)) {
         New-Item $newFile | Out-Null
     }
@@ -142,6 +143,9 @@ Function Main() {
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel
+
+    Write-Host "Для завершения нажмите Enter" -ForegroundColor Blue
+    Read-Host
 }
 
 Function FindAdress($Name, $commonListSheet) {

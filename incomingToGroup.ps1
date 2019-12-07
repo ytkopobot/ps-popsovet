@@ -35,7 +35,7 @@ Function Main() {
 
     $endRow = $worksheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row
 
-    $allGroupSheets =  @{}
+    $allGroupSheets = @{}
     $incomingsCount = 0
     $addedIncomings = 0
     $editedFilesCount = @{}
@@ -68,7 +68,7 @@ Function Main() {
             }
         }
         $paymentDate = $worksheet.Cells.Item($i, $IncomingPaymentDateCell).Text
-        if(-Not$paymentDate){
+        if (-Not$paymentDate) {
             Write-Host "Дата взноса не известна $incomingName, строка $i колонка $IncomingPaymentDateCell"
             continue
         }
@@ -76,14 +76,14 @@ Function Main() {
         $monthName = GetMonthName $monthNumber
 
 
-        $FindedMonth  = $groupSheet.Cells.Item($GroupMonthRow, 1).EntireRow.Find($monthName)
-        if(-Not$FindedMonth){
+        $FindedMonth = $groupSheet.Cells.Item($GroupMonthRow, 1).EntireRow.Find($monthName)
+        if (-Not$FindedMonth) {
             Write-Host "Для группы $groupNumber на листе $GroupSheetName в строке $GroupMonthRow не найден месяц $monthName, взнос для $incomingName будет пропущен"
             continue
         }
 
-        $FindedName  = $groupSheet.Cells.Item(1, $NameColumn).EntireColumn.Find($incomingName)
-        if(-Not$FindedName){
+        $FindedName = $groupSheet.Cells.Item(1, $NameColumn).EntireColumn.Find($incomingName)
+        if (-Not$FindedName) {
             Write-Host "Для группы $groupNumber на листе $GroupSheetName в колонке $NameColumn не найдено фио $incomingName, взнос будет пропущен"
             continue
         }
@@ -91,8 +91,9 @@ Function Main() {
         $currentValueCell = $groupSheet.Cells.Item($FindedName.Row, $FindedMonth.Column + 1)
         $currentValue = $currentValueCell.Value2
 
-        if($currentValue){
-            Write-Host "В строке  $($FindedName.Row) и колонке $($FindedMonth.Column + 1) уже есть значение $currentValue, взнос для $incomingName будет пропущен"
+        if ($currentValue) {
+            Write-Host "В строке  $( $FindedName.Row ) и колонке $( $FindedMonth.Column +
+                    1 ) уже есть значение $currentValue, взнос для $incomingName будет пропущен"
             continue
         }
 
@@ -100,7 +101,7 @@ Function Main() {
         $currentValueCell.Value2 = $payment
         $addedIncomings++
 
-        if(-Not$editedFilesCount["$groupNumber"]) {
+        if (-Not$editedFilesCount["$groupNumber"]) {
             $editedFilesCount["$groupNumber"] = 0
         }
         $editedFilesCount["$groupNumber"] = $editedFilesCount["$groupNumber"] + 1
@@ -109,8 +110,8 @@ Function Main() {
     Write-Host "Итого:" -ForegroundColor Green
     Write-Host "Обработано $incomingsCount строк, с $startRow по $endRow" -ForegroundColor Green
     Write-Host "Добавлено  $addedIncomings взносов" -ForegroundColor Green
-    Write-Host "Открыто  $($allGroupSheets.count) файлов групп" -ForegroundColor Green
-    Write-Host "Изменено  $($editedFilesCount.count) файлов групп" -ForegroundColor Green
+    Write-Host "Открыто  $( $allGroupSheets.count ) файлов групп" -ForegroundColor Green
+    Write-Host "Изменено  $( $editedFilesCount.count ) файлов групп" -ForegroundColor Green
 
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
@@ -124,6 +125,8 @@ Function Main() {
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel
+    Write-Host "Для завершения нажмите Enter" -ForegroundColor Blue
+    Read-Host
 
 }
 

@@ -1,5 +1,5 @@
 #Файл общего списка с нужной нам информацией
-$ExcelFilename = "2019-test-for-dev.xlsx"
+$ExcelFilename = "2019.xlsx"
 $IncomingLogSheetName = "Взносы"
 $IncomingGroupCell = 1
 $IncomingPaymentDateCell = 2  #Дата когда пришел взнос
@@ -14,7 +14,7 @@ $ContractCell = 4
 $AddressCell = 5
 
 #Файл с группами содержит информацию для групп
-$GroupExcel = "N группа-test-for-dev.xlsx"
+$GroupExcel = "N группа.xlsx"
 $GroupSheetName = "Взносы"
 $GroupStartRow = 6 # c какой строчки начинаются фамилии
 $NameColumn = 2   # Сумма взноса в фонд сада

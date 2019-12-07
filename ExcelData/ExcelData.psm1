@@ -8,10 +8,10 @@ $PaymentIdCell = 13
 $IncomingPaymentCell = 6
 
 $CommonListSheetName = "Общий список"
-$GroupNumberCell = 1
-$NameCell = 3
-$ContractCell = 4
-$AddressCell = 5
+$GroupNumberCell = 2
+$NameCell = 4
+$ContractCell = 5
+$AddressCell = 6
 
 #Файл с группами содержит информацию для групп
 $GroupExcel = "N группа.xlsx"

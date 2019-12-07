@@ -93,28 +93,29 @@ Function Main() {
             continue
         }
 
-        $ForDebt = $groupsheet.Cells.Item($i, 1).Text # по остатку TODO переделать если надо будет
+        if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {
+            Write-Host "Долга нет, начисление будет пропущено для $Name" -ForegroundColor Magenta
+            $skips++
+            continue;
+        }
 
-        $currentSum = 0
-        if ($ForDebt -ieq "д") {
-            # вынести в конфигурацию
-            if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {
-                Write-Host "Долга нет, начисление будет пропущено для $Name"
-                $skips++
-                continue;
-            }
-            if ($currentDebt -lt 0) {
-                Write-Host "Долг отрицательный, начисление будет пропущено для $Name"
-                $skips++
-                continue;
-            }
-            $currentSum = $currentDebt
+        if ($currentDebt -lt 0) {
+            Write-Host "Долг отрицательный, начисление будет пропущено для $Name"  -ForegroundColor Magenta
+            $skips++
+            continue;
+        }
+
+        $currentSum = $currentDebt
+        $fondSum = $CommonFondSum + $GroupFondSum
+        if ($fondSum -le 0) {
+            Write-Host "Сумма взноса не установлена, будет начислен только долг для $Name"  -ForegroundColor Cyan
         } else {
-            $currentSum = $CommonFondSum + $GroupFondSum
-            if ($currentSum -le 0) {
-                Write-Host "Сумма взноса не установлена, начисление будет пропущено для $Name"
-                $skips++
-                continue;
+            if ($currentDebt -gt $fondSum * 3) {
+                $currentSum = $fondSum * 3
+                $diff = $( $currentDebt - $fondSum * 3 )
+                Write-Host "Сумма долга превышает трёхмесячный размер платежей. Необходимо списать долг ещё на " -ForegroundColor Cyan  -nonewline
+                Write-Host "$diff" -BackgroundColor DarkRed  -ForegroundColor White -nonewline
+                Write-Host " для $Name" -ForegroundColor Cyan
             }
         }
         Add-Content $newFile "$Name;$Adress;$Contract;$currentSum"
@@ -164,7 +165,7 @@ Function FindContract($Name, $commonListSheet) {
     $FindedCell = $commonListSheet.Range($range).EntireColumn.Find($Name)
     $Contract = $commonListSheet.Cells.Item($FindedCell.Row, $ContractCell).Value2
     if (-Not$Contract) {
-        Write-Host "Номер договора не найден для $Name"
+        Write-Host "Номер договора не найден для $Name" -ForegroundColor Magenta
         return $null
     }
     return $Contract

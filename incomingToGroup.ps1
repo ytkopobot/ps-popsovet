@@ -38,6 +38,7 @@ Function Main() {
     $allGroupSheets =  @{}
     $incomingsCount = 0
     $addedIncomings = 0
+    $editedFilesCount = @{}
 
     for ($i = $startRow; $i -le $endRow; $i++)
     {
@@ -99,23 +100,27 @@ Function Main() {
         $currentValueCell.Value2 = $payment
         $addedIncomings++
 
+        if(-Not$editedFilesCount["$groupNumber"]) {
+            $editedFilesCount["$groupNumber"] = 0
+        }
+        $editedFilesCount["$groupNumber"] = $editedFilesCount["$groupNumber"] + 1
     }
 
-    Write-Host "Итого:"
+    Write-Host "Итого:" -ForegroundColor Green
     Write-Host "Обработано $incomingsCount строк, с $startRow по $endRow" -ForegroundColor Green
     Write-Host "Добавлено  $addedIncomings взносов" -ForegroundColor Green
-    Write-Host "Изменено  $($allGroupSheets.count) файлов групп" -ForegroundColor Green
+    Write-Host "Открыто  $($allGroupSheets.count) файлов групп" -ForegroundColor Green
+    Write-Host "Изменено  $($editedFilesCount.count) файлов групп" -ForegroundColor Green
 
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
 
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($workSheet) | Out-Null
     for ($i = 1; $i -le 12; $i++){
-        if (-Not$allGroupSheets["$i"]) {
+        if ($allGroupSheets["$i"]) {
             [System.Runtime.Interopservices.Marshal]::ReleaseComObject($allGroupSheets["$i"]) | Out-Null
         }
     }
-    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($groupsSheet) | Out-Null
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel

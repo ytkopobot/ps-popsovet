@@ -60,7 +60,7 @@ Function Main() {
                 }
             }
 
-    Write-Host "Итого:"
+    Write-Host "Итого:" -ForegroundColor Green
     Write-Host "Обработано $filesCount файлов, $paymentCount строк" -ForegroundColor Green
     Write-Host "Добавлено  $paymentAddedCount строк" -ForegroundColor Green
     Write-Host "Лист '$IncomingLogSheetName' файла $excelFilePath" -ForegroundColor Magenta

@@ -123,7 +123,7 @@ Function Main() {
 
     Add-Content $newFile "#FILESUM $overalSum"
 
-    Write-Host "Итого:"
+    Write-Host "Итого:" -ForegroundColor Green
     Write-Host "Добавлено  $rows строк" -ForegroundColor Green
     Write-Host "Пропущено  $skips строк" -ForegroundColor Green
     Write-Host "Общая сумма  $overalSum" -ForegroundColor Green

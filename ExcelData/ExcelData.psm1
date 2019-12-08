@@ -1,11 +1,11 @@
 #Файл общего списка с нужной нам информацией
 $ExcelFilename = "2019.xlsx"
 $IncomingLogSheetName = "Взносы"
-$IncomingGroupCell = 1
-$IncomingPaymentDateCell = 2  #Дата когда пришел взнос
-$IncomingNameCell = 3
-$PaymentIdCell = 13
-$IncomingPaymentCell = 6
+$IncomingGroupCell = 2
+$IncomingPaymentDateCell = 3  # Дата когда пришел взнос
+$IncomingNameCell = 4
+$IncomingPaymentCell = 7
+$PaymentIdCell = 9
 
 $CommonListSheetName = "Общий список"
 $GroupNumberCell = 2

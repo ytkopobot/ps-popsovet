@@ -32,6 +32,7 @@ Function Main() {
     $filesCount = 0
     $paymentAddedCount = 0
     $paymentCount = 0
+    $skipedCount = 0
     Get-ChildItem $incomingDir -Filter *.txt |
             Foreach-Object {
                 # Обработка файла
@@ -50,6 +51,7 @@ Function Main() {
                         $errorMessage = WriteLine $_ $worksheet $groupsSheet $currentRow
                         if ($errorMessage) {
                             Write-Host $errorMessage -ForegroundColor Magenta
+                            $skipedCount++
                         } else {
                             Write-Host "добавлена строка $currentRow" -ForegroundColor Green
                             $currentRow++
@@ -63,6 +65,7 @@ Function Main() {
     Write-Host "Итого:" -ForegroundColor Green
     Write-Host "Обработано $filesCount файлов, $paymentCount строк" -ForegroundColor Green
     Write-Host "Добавлено  $paymentAddedCount строк" -ForegroundColor Green
+    Write-Host "Пропущено  $skipedCount строк" -ForegroundColor Green
     Write-Host "Лист '$IncomingLogSheetName' файла $excelFilePath" -ForegroundColor Magenta
 
     #saving & closing the file
@@ -99,14 +102,16 @@ Function WriteLine($line, $worksheet, $groupsSheet, $currentRow) {
         return "$paymentId - уже существует, строка $( $FindedCell.Row ), $childName";
     }
     $Found = $groupsSheet.Cells.Find($childName)
+
     $groupNumber = "?"
+    $groupCell = $worksheet.Cells.Item($currentRow, $partCounter)
     if ($Found) {
         $groupNumber = $groupsSheet.Cells.Item($Found.Row, $GroupNumberCell).Text
     } else {
-        return "$paymentId - не найдена группа $childName";
+        Write-Host "$paymentId - не найдена группа $childName" -ForegroundColor Magenta
+        $groupCell.Interior.ColorIndex = 3
     }
-
-    $worksheet.Cells.Item($currentRow, $partCounter) = $groupNumber
+    $groupCell.Value = $groupNumber
 
     $partCounter++
     $worksheet.Cells.Item($currentRow, $partCounter).Value2 = [datetime]::parseexact($date, 'dd/MM/yyyy', $null)
@@ -187,18 +192,12 @@ Function WriteLine($line, $worksheet, $groupsSheet, $currentRow) {
 
     $partCounter++
     $m = $metadata[8] -split ";" # дата формирования реестра
-    $worksheet.Cells.Item($currentRow, $partCounter) = $m[0] # описание пропускаем
+    $worksheet.Cells.Item($currentRow, $partCounter).Value2 = [datetime]::ParseExact($m[0], 'dd/MM/yyyy HH:mm:ss', $null)  # TODO не работает описание пропускаем  04/09/2019 13:25:04
 
-    $partCounter++
-    $m = $metadata[9] -split ";" # начало диапазона дат документов, входящих в реестр
-    $worksheet.Cells.Item($currentRow, $partCounter) = $m[0] # описание пропускаем
+    # начало и конец диапазона дат документов, входящих в реестр пропускаем
 
     # $partCounter++
-    $m = $metadata[9] -split ";" # конец  диапазона дат документов, входящих в реестр
-    $worksheet.Cells.Item($currentRow, $partCounter) = $m[0] # описание пропускаем
-
-    # $partCounter++
-    $m = $metadata[9] -split ";" # Примечание
+    $m = $metadata[11] -split ";" # Примечание
     $worksheet.Cells.Item($currentRow, $partCounter) = $m[0] # описание пропускаем
 
 }

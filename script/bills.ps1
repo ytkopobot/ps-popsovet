@@ -26,19 +26,19 @@ Function Main() {
     Write-Host "Номер группы [1-12]" -ForegroundColor Green
     $groupNumber = Read-Host
 
-    $excelFilePath = "$scriptPath\$ExcelFilename"
+    $excelFilePath = "$scriptPath\..\$ExcelFilename"
     if (-Not [System.IO.File]::Exists($excelFilePath)) {
         Write-Host "Файл $ExcelFilename не найден $excelFilePath" -ForegroundColor Red
         exit
     }
 
-    $groupFilePath = "$scriptPath\$($GroupExcel.Replace("N", $groupNumber) )"
+    $groupFilePath = "$scriptPath\..\$($GroupExcel.Replace("N", $groupNumber) )"
     if (-Not [System.IO.File]::Exists($groupFilePath)) {
         Write-Host "Файл группы не найден $groupFilePath" -ForegroundColor Red
         exit
     }
 
-    $outcomingDir = "$scriptPath\$OutcomingFolder"
+    $outcomingDir = "$scriptPath\..\$OutcomingFolder"
 
     $excel = New-Object -ComObject excel.application
     $excel.visible = $true
@@ -55,8 +55,6 @@ Function Main() {
     if (-Not$commonListSheet) {
         exit
     }
-
-    Write-Host "456"
 
     $startRow = $GroupStartRow
     $endRow = $groupsheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row

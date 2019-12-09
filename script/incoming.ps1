@@ -7,8 +7,8 @@ Import-Module -Name "$scriptPath\ExcelData\ExcelData.psm1"
 Import-Module -Name "$scriptPath\ExcelUtils\ExcelUtils.psm1"
 
 Function Main() {
-    $excelFilePath = "$scriptPath\$ExcelFilename"
-    $incomingDir = "$scriptPath\$IncomingFolder"
+    $excelFilePath = "$scriptPath\..\$ExcelFilename"
+    $incomingDir = "$scriptPath\..\$IncomingFolder"
 
     Write-Host "#" -ForegroundColor Yellow
     Write-Host "# Читаем текстовые файлы из Системы Город из папки $incomingDir" -ForegroundColor Yellow

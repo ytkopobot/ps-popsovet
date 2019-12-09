@@ -1,1 +1,1 @@
-powershell -f incoming.ps1
+powershell -f  script/incoming.ps1

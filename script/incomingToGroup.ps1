@@ -7,7 +7,7 @@ Import-Module -Name "$scriptPath\ExcelData\ExcelData.psm1"
 Import-Module -Name "$scriptPath\ExcelUtils\ExcelUtils.psm1"
 
 Function Main() {
-    $excelFilePath = "$scriptPath\$ExcelFilename"
+    $excelFilePath = "$scriptPath\..\$ExcelFilename"
 
     Write-Host "#" -ForegroundColor Yellow
     Write-Host "# Обрабатываем полученные взносы из листа '$IncomingLogSheetName' файла $excelFilePath" -ForegroundColor Yellow
@@ -140,7 +140,7 @@ Function OpenAllGroupFiles($excel) {
 }
 
 Function OpenGroup($excel, $groupNumber) {
-    $groupFilePath = "$scriptPath\$($GroupExcel.Replace("N", $groupNumber) )"
+    $groupFilePath = "$scriptPath\..\$($GroupExcel.Replace("N", $groupNumber) )"
     if (-Not [System.IO.File]::Exists($groupFilePath)) {
         Write-Host "Файл не найден $groupFilePath"
         return $null

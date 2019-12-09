@@ -41,8 +41,8 @@ Function Main() {
     $outcomingDir = "$scriptPath\$OutcomingFolder"
 
     $excel = New-Object -ComObject excel.application
-    $excel.visible = $false
-    $excel.DisplayAlerts = $false
+    $excel.visible = $true
+    $excel.DisplayAlerts = $true
     $workbook = $excel.Workbooks.Open($excelFilePath)
     $groupbook = $excel.Workbooks.Open($groupFilePath)
 
@@ -55,6 +55,8 @@ Function Main() {
     if (-Not$commonListSheet) {
         exit
     }
+
+    Write-Host "456"
 
     $startRow = $GroupStartRow
     $endRow = $groupsheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row

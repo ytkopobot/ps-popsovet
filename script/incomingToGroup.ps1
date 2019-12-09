@@ -107,7 +107,8 @@ Function Main() {
         $editedFilesCount["$groupNumber"] = $editedFilesCount["$groupNumber"] + 1
     }
 
-    Write-Host "Итого:" -ForegroundColor Green
+    Write-Host
+    Write-Host "Итого:" -BackgroundColor Green
     Write-Host "Обработано $incomingsCount строк, с $startRow по $endRow" -ForegroundColor Green
     Write-Host "Добавлено  $addedIncomings взносов" -ForegroundColor Green
     Write-Host "Открыто  $( $allGroupSheets.count ) файлов групп" -ForegroundColor Green

@@ -62,7 +62,8 @@ Function Main() {
                 }
             }
 
-    Write-Host "Итого:" -ForegroundColor Green
+    Write-Host
+    Write-Host "Итого:" -BackgroundColor Green
     Write-Host "Обработано $filesCount файлов, $paymentCount строк" -ForegroundColor Green
     Write-Host "Добавлено  $paymentAddedCount строк" -ForegroundColor Green
     Write-Host "Пропущено  $skipedCount строк" -ForegroundColor Green

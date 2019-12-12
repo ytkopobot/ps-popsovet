@@ -17,6 +17,7 @@ $AddressCell = 6
 $GroupExcel = "N группа.xlsx"
 $GroupSheetName = "Взносы"
 $GroupStartRow = 6 # c какой строчки начинаются фамилии
+$TagColumn = 1   # тэг для строчки
 $NameColumn = 2   # Сумма взноса в фонд сада
 $CommonFondColumn = 4   # Сумма взноса в фонд сада
 $GroupFondColumn = 5  # Сумма взноса в фонд группы
@@ -40,6 +41,6 @@ $xlCellTypeLastCell = 11
 #TODO некоторые имена очень похожи!!!
 Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetName, `
     IncomingFolder, PaymentIdCell, IncomingNameCell, IncomingGroupCell, IncomingLogSheetName, IncomingPaymentDateCell, IncomingPaymentCell, `
-    GroupNumberCell, xlCellTypeLastCell, NameCell, ContractCell, AddressCell, `
+    GroupNumberCell, xlCellTypeLastCell, TagColumn, NameCell, ContractCell, AddressCell, `
     OutcomingFilename, GroupTitleCell, SGParts,`
     GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, GroupSheetName, NameColumn, DebtColumn, GroupMonthRow

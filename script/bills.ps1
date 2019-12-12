@@ -69,62 +69,89 @@ Function Main() {
     $overalSum = 0
     $rows = 0
     $skips = 0
-
+    $n = 1
+    Write-Host ""
     for ($i = $startRow; $i -le $endRow; $i++)
     {
         $CommonFondSum = $groupsheet.Cells.Item($i, $CommonFondColumn).Value2
         $GroupFondSum = $groupsheet.Cells.Item($i, $GroupFondColumn).Value2
         $currentDebt = $groupsheet.Cells.Item($i, $DebtColumn).Value2
-        $Name = $groupsheet.Cells.Item($i, $NameColumn).Text
+        $Name = $groupsheet.Cells.Item($i, $NameColumn).Value2
+        $Tag = $groupsheet.Cells.Item($i, $TagColumn).Value2
         if (-Not$Name) {
             continue;
         }
         if ( $Name.StartsWith("#")) {
             continue
         }
+        if($Tag -eq "н") {
+            Write-Host "$n. $Name   начисление пропущено   указана 'н'" -ForegroundColor DarkGray
+            $skips++
+            $n++
+            continue
+        }
+
         $Adress = FindAdress $Name $commonListSheet
         if (-Not$Adress) {
+            Write-Host "$n. $Name   начисление пропущено   адрес не найден" -ForegroundColor Magenta
             $skips++
+            $n++
             continue
         }
         $Contract = FindContract $Name $commonListSheet
         if (-Not$Contract) {
+            Write-Host "$n. $Name   начисление пропущено   номер договора не найден" -ForegroundColor Magenta
             $skips++
+            $n++
             continue
         }
 
+        if($Tag -eq 0){
+            Write-Host "$n. $Name   начислено 0   указан 0" -ForegroundColor Cyan
+            Add-Content $newFile "$Name;$Adress;$Contract;0.00"
+            $rows++
+            $n++
+            continue;
+        }
+
         if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {
-            Write-Host "$Name`t Долга нет, начисление будет пропущено " -ForegroundColor Magenta
-            $skips++
+            Write-Host "$n. $Name   начислено 0   долга нет" -ForegroundColor Cyan
+            Add-Content $newFile "$Name;$Adress;$Contract;0.00"
+            $rows++
+            $n++
             continue;
         }
 
         if ($currentDebt -lt 0) {
-            Write-Host "$Name`t Долг отрицательный, начисление будет пропущено"  -ForegroundColor Magenta
-            $skips++
+            Write-Host "$n. $Name   начислено 0   долг отрицательный" -ForegroundColor Cyan
+            Add-Content $newFile "$Name;$Adress;$Contract;0.00"
+            $rows++
+            $n++
             continue;
         }
 
         $currentSum = $currentDebt
         $fondSum = $CommonFondSum + $GroupFondSum
         if ($fondSum -le 0) {
-            Write-Host "$Name`t Сумма взноса не установлена, будет начислен только долг"  -ForegroundColor Cyan
+            Write-Host "$n. $Name    начислено $currentSum   сумма взноса не установлена, начислен только долг"  -ForegroundColor Cyan
         } else {
             if ($currentDebt -gt $fondSum * 3) {
                 $currentSum = $fondSum * 3
-                $diff = $( $currentDebt - $fondSum * 3 )
-                Write-Host "$Name`t" -ForegroundColor Cyan -nonewline
-                Write-Host " Сумма долга превышает трёхмесячный размер платежей. Необходимо списать долг ещё на " -ForegroundColor Cyan  -nonewline
-                Write-Host "$diff" -BackgroundColor DarkRed  -ForegroundColor White
+                Write-Host "$n. $Name   начислено $currentSum   сумма долга превышает трёхмесячный размер платежей, необходимо списать " -ForegroundColor Cyan  -nonewline
+                Write-Host "$( $currentDebt - $fondSum * 3 )" -BackgroundColor DarkRed  -ForegroundColor White
+            }else{
+                Write-Host "$n. $Name   начислено $currentSum" -ForegroundColor Green
             }
         }
-        Add-Content $newFile "$Name;$Adress;$Contract;$currentSum"
-        Write-Host "$Name`t Добавлено начисление $currentSum" -ForegroundColor Green
-        $rows++
+
+        $formatted = FormatNumber $currentSum
+        Add-Content $newFile "$Name;$Adress;$Contract;$formatted"
         $overalSum = $overalSum + $currentSum
+        $n++
+        $rows++
     }
 
-    Add-Content $newFile "#FILESUM $overalSum"
+    Add-Content $newFile "#FILESUM $(FormatNumber $overalSum)"
 
     Write-Host
     Write-Host "Итого:" -BackgroundColor Green
@@ -136,7 +163,6 @@ Function Main() {
     #saving & closing the file
     #adjusting the column width so all data's properly visible
     $excel.DisplayAlerts = $false
-    $excel.Quit()
 
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()
@@ -151,9 +177,8 @@ Function Main() {
 Function FindAdress($Name, $commonListSheet) {
     $range = GetColumnRange($NameCell)
     $FindedCell = $commonListSheet.Range($range).EntireColumn.Find($Name)
-    $Address = $commonListSheet.Cells.Item($FindedCell.Row, $AddressCell).Text
+    $Address = $commonListSheet.Cells.Item($FindedCell.Row, $AddressCell).Value2
     if (-Not$Address) {
-        Write-Host "$Name`t Адрес не найден" -ForegroundColor Magenta
         return $null
     }
     return $Address
@@ -164,10 +189,13 @@ Function FindContract($Name, $commonListSheet) {
     $FindedCell = $commonListSheet.Range($range).EntireColumn.Find($Name)
     $Contract = $commonListSheet.Cells.Item($FindedCell.Row, $ContractCell).Value2
     if (-Not$Contract) {
-        Write-Host "$Name`t Номер договора не найден" -ForegroundColor Magenta
         return $null
     }
     return $Contract
+}
+
+Function FormatNumber($number){
+    return $([double]$number).ToString("#.00").Replace(",", ".")
 }
 Main
 

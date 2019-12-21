@@ -49,13 +49,13 @@ Function Main() {
         $incomingsCount++
         [uint16] $groupNumber = $worksheet.Cells.Item($i, $IncomingGroupCell).Value2
         if (-Not$groupNumber) {
-            Write-Host "Не найдена группа для $incomingName, строка $i колонка $IncomingGroupCell"
+            Write-Host "Не найдена группа для $incomingName, строка $i колонка $IncomingGroupCell" -ForegroundColor Magenta
             continue
         }
 
         $payment = $worksheet.Cells.Item($i, $IncomingPaymentCell).Value2
         if (-Not$payment) {
-            Write-Host "Не найдена сумма платежа для $incomingName, строка $i колонка $IncomingPaymentCell"
+            Write-Host "Не найдена сумма платежа для $incomingName, строка $i колонка $IncomingPaymentCell" -ForegroundColor Magenta
             continue
         }
 
@@ -63,13 +63,13 @@ Function Main() {
         if (-Not$groupSheet) {
             $groupSheet = $allGroupSheets["$groupNumber"] = OpenGroup $excel $groupNumber
             if (-Not$groupSheet) {
-                Write-Host "Невозможно записать взнос для $incomingName группа $groupNumber, строка $i - файл группы не доступен"
+                Write-Host "Невозможно записать взнос для $incomingName группа $groupNumber, строка $i - файл группы не доступен" -ForegroundColor Magenta
                 continue
             }
         }
         $paymentDate = $worksheet.Cells.Item($i, $IncomingPaymentDateCell).Text
         if (-Not$paymentDate) {
-            Write-Host "Дата взноса не известна $incomingName, строка $i колонка $IncomingPaymentDateCell"
+            Write-Host "Дата взноса не известна $incomingName, строка $i колонка $IncomingPaymentDateCell" -ForegroundColor Magenta
             continue
         }
         $monthNumber = [datetime]::parseexact($paymentDate, 'dd.MM.yyyy', $null).Month
@@ -78,27 +78,44 @@ Function Main() {
 
         $FindedMonth = $groupSheet.Cells.Item($GroupMonthRow, 1).EntireRow.Find($monthName)
         if (-Not$FindedMonth) {
-            Write-Host "Для группы $groupNumber на листе $GroupSheetName в строке $GroupMonthRow не найден месяц $monthName, взнос для $incomingName будет пропущен"
+            Write-Host "Для группы $groupNumber на листе $GroupSheetName в строке $GroupMonthRow не найден месяц $monthName, взнос для $incomingName будет пропущен" -ForegroundColor Magenta
             continue
         }
 
         $FindedName = $groupSheet.Cells.Item(1, $NameColumn).EntireColumn.Find($incomingName)
         if (-Not$FindedName) {
-            Write-Host "Для группы $groupNumber на листе $GroupSheetName в колонке $NameColumn не найдено фио $incomingName, взнос будет пропущен"
+            Write-Host "Для группы $groupNumber на листе $GroupSheetName в колонке $NameColumn не найдено фио $incomingName, взнос будет пропущен" -ForegroundColor Magenta
             continue
         }
 
-        $currentValueCell = $groupSheet.Cells.Item($FindedName.Row, $FindedMonth.Column + 1)
-        $currentValue = $currentValueCell.Value2
+        $currentCommonFondValueCell = $groupSheet.Cells.Item($FindedName.Row, $FindedMonth.Column + 1)
+        $currentCommonFondValue = $currentCommonFondValueCell.Value2
 
-        if ($currentValue) {
-            Write-Host "В строке  $( $FindedName.Row ) и колонке $( $FindedMonth.Column +
-                    1 ) уже есть значение $currentValue, взнос для $incomingName будет пропущен"
+        $currentGroupValueCell = $groupSheet.Cells.Item($FindedName.Row, $FindedMonth.Column + 2)
+        $currentGroupValue = $currentGroupValueCell.Value2
+
+        if ($currentCommonFondValue -or $currentGroupValue) {
+            Write-Host "Для группы $groupNumber на листе $GroupSheetName для $incomingName в месяце $monthName уже есть значение, взнос будет пропущен!" -ForegroundColor Red
             continue
         }
 
-        $currentValueCell.Interior.ColorIndex = 6
-        $currentValueCell.Value2 = $payment
+        $CommonFondSum = $groupsheet.Cells.Item($FindedName.Row, $CommonFondColumn).Value2
+        $GroupFondSum = $groupsheet.Cells.Item($FindedName.Row, $GroupFondColumn).Value2
+
+
+        if ($payment -eq ($CommonFondSum + $GroupFondSum)){
+            Write-Host "Для $incomingName $groupNumber гр. в месяце '$monthName' сумма равна ежемесячному взносу, поэтому она сразу будет разбита на две колонки" -ForegroundColor Green
+            $currentCommonFondValueCell.Interior.ColorIndex = 4
+            $currentCommonFondValueCell.Value2 = $CommonFondSum
+
+            $currentGroupValueCell.Interior.ColorIndex = 4
+            $currentGroupValueCell.Value2 = $GroupFondSum
+        }else {
+            Write-Host "Для $incomingName $groupNumber гр. в месяце '$monthName' сумма не равна ежемесячному взносу, поэтому она будет записана в фонд сада для дальнейшей ручной разбивки" -ForegroundColor Cyan
+            $currentCommonFondValueCell.Interior.ColorIndex = 6
+            $currentCommonFondValueCell.Value2 = $payment
+        }
+
         $addedIncomings++
 
         if (-Not$editedFilesCount["$groupNumber"]) {

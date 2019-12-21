@@ -19,10 +19,6 @@ Function Main() {
     $excelFilePath = "$scriptPath\..\$ExcelFilename"
     $incomingDir = "$scriptPath\..\$IncomingFolder"
 
-    Write-Host "#" -ForegroundColor Yellow
-    Write-Host "# Читаем текстовые файлы из Системы Город из папки $incomingDir" -ForegroundColor Yellow
-    Write-Host "#" -ForegroundColor Yellow
-
     $excel = New-Object -ComObject excel.application
     $excel.visible = $true
     $workbook = $excel.Workbooks.Open($excelFilePath)
@@ -46,12 +42,15 @@ Function Main() {
     }
 
     if( $PathParam1 ){
-        $incomingDir = $PathParam1
+        $incomingDir = $PathParam1.Replace("[HOME]", $HOME)
     }
+    Write-Host "# Читаем текстовые файлы из Системы Город из папки $incomingDir" -ForegroundColor Yellow
     ReadFromFolder $incomingDir $Stats $worksheet
 
     if( $PathParam2 ){
-        ReadFromFolder $PathParam2 $Stats $worksheet
+        $incomingDir = $PathParam2.Replace("[HOME]", $HOME)
+        Write-Host "# Читаем текстовые файлы из Системы Город из папки $incomingDir" -ForegroundColor Yellow
+        ReadFromFolder $incomingDir $Stats $worksheet
     }
 
     Write-Host

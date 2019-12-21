@@ -1,3 +1,12 @@
+param(
+    [Parameter(Position=0, ValueFromPipeline=$false)]
+    [System.String]
+    $PathParam1,
+
+    [Parameter(Position=0, ValueFromPipeline=$false)]
+    [System.String]
+    $PathParam2
+)
 #$PSDefaultParameterValues['Out-File:Encoding'] = 'utf8'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
@@ -28,45 +37,29 @@ Function Main() {
         exit
     }
 
-    $currentRow = $worksheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
-    $filesCount = 0
-    $paymentAddedCount = 0
-    $paymentCount = 0
-    $skipedCount = 0
-    Get-ChildItem $incomingDir -Filter *.txt |
-            Foreach-Object {
-                # Обработка файла
-                $filesCount++
-                $lines = Get-Content $_.FullName
-                $metadata = New-Object System.Collections.ArrayList
+    $Stats = New-Object -Type PSObject -Property @{
+        'filesCount'   = 0
+        'paymentAddedCount' = 0
+        'paymentCount' = 0
+        'skipedCount' = 0
+        'overalSum' = 0
+    }
 
-                # Обработка строк в файле
-                $lines | Foreach-Object {
-                    if ($_ -Match '#') {
-                        $value = $_.substring(1)
-                        $metadata.Add($value) > $null
-                    }
+    if( $PathParam1 ){
+        $incomingDir = $PathParam1
+    }
+    ReadFromFolder $incomingDir $Stats $worksheet
 
-                    if ($_ -NotMatch '#') {
-                        $errorMessage = WriteLine $_ $worksheet $groupsSheet $currentRow
-                        if ($errorMessage) {
-                            Write-Host $errorMessage -ForegroundColor Magenta
-                            $skipedCount++
-                        } else {
-                            Write-Host "добавлена строка $currentRow" -ForegroundColor Green
-                            $currentRow++
-                            $paymentAddedCount++
-                        }
-                        $paymentCount++
-                    }
-                }
-            }
+    if( $PathParam2 ){
+        ReadFromFolder $PathParam2 $Stats $worksheet
+    }
 
     Write-Host
     Write-Host "Итого:" -BackgroundColor Green
-    Write-Host "Обработано $filesCount файлов, $paymentCount строк" -ForegroundColor Green
-    Write-Host "Добавлено  $paymentAddedCount строк" -ForegroundColor Green
-    Write-Host "Пропущено  $skipedCount строк" -ForegroundColor Green
+    Write-Host "Общая сумма  $($Stats."overalSum"). Можно сверить с Системой Город если нет пропущенных строк" -ForegroundColor Green
+    Write-Host "Обработано $($Stats."filesCount") файлов, $($Stats."paymentCount") строк" -ForegroundColor Green
+    Write-Host "Добавлено  $($Stats."paymentAddedCount") строк" -ForegroundColor Green
+    Write-Host "Пропущено  $($Stats."skipedCount") строк" -ForegroundColor Green
     Write-Host "Лист '$IncomingLogSheetName' файла $excelFilePath" -ForegroundColor Magenta
 
     #saving & closing the file
@@ -83,8 +76,40 @@ Function Main() {
 
     Remove-Variable -Name excel
 
-    Write-Host "Для завершения нажмите Enter" -ForegroundColor Blue
-    Read-Host
+    Pause
+}
+
+Function ReadFromFolder($incomingDir, $Stats, $worksheet){
+    $currentRow = $worksheet.UsedRange.SpecialCells($xlCellTypeLastCell).Row + 1
+    Get-ChildItem $incomingDir -Filter *.txt |
+            Foreach-Object {
+                # Обработка файла
+                $Stats."filesCount"++
+                $lines = Get-Content $_.FullName
+                $metadata = New-Object System.Collections.ArrayList
+
+                # Обработка строк в файле
+                $lines | Foreach-Object {
+                    if ($_ -Match '#') {
+                        $value = $_.substring(1)
+                        $metadata.Add($value) > $null
+                    }
+
+                    if ($_ -NotMatch '#') {
+                        $errorMessage = WriteLine $_ $worksheet $groupsSheet $currentRow
+                        if ($errorMessage) {
+                            Write-Host $errorMessage -ForegroundColor Magenta
+                            $Stats."skipedCount"++
+                        } else {
+                            Write-Host "добавлена строка $currentRow" -ForegroundColor Green
+                            $Stats."overalSum" = $Stats."overalSum" + $worksheet.Cells.Item($currentRow, $IncomingPaymentCell).Value2
+                            $currentRow++
+                            $Stats."paymentAddedCount"++
+                        }
+                        $Stats."paymentCount"++
+                    }
+                }
+            }
 }
 
 Function WriteLine($line, $worksheet, $groupsSheet, $currentRow) {

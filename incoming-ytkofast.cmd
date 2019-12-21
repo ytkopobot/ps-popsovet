@@ -1,2 +1,2 @@
-powershell -f  script/incoming.ps1 -PathParam1 "C:\Users\ytkop\GorodSystem\incomingFilesDir\CASHLESS" -PathParam2 "C:\Users\ytkop\GorodSystem\incomingFilesDir\CASHPAY"
+powershell -f  script/incoming.ps1 -PathParam1 "[HOME]\GorodSystem\incomingFilesDir\CASHLESS" -PathParam2 "[HOME]\GorodSystem\incomingFilesDir\CASHPAY"
 

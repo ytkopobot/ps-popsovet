@@ -18,10 +18,10 @@ $GroupExcel = "N группа.xlsx"
 $GroupSheetName = "Взносы"
 $GroupStartRow = 6 # c какой строчки начинаются фамилии
 $TagColumn = 1   # тэг для строчки
-$NameColumn = 2   # Сумма взноса в фонд сада
-$CommonFondColumn = 4   # Сумма взноса в фонд сада
-$GroupFondColumn = 5  # Сумма взноса в фонд группы
-$DebtColumn = 21  # Сумма долга
+$NameColumn = 2   # Имя
+$CommonFondColumn = 3   # Сумма взноса в фонд сада
+$GroupFondColumn = 4  # Сумма взноса в фонд группы
+$DebtColumn = 43  # Сумма долга
 $GroupMonthRow = 4
 
 

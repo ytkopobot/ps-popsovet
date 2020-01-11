@@ -95,7 +95,7 @@ Function Main() {
         $currentGroupValue = $currentGroupValueCell.Value2
 
         if ($currentCommonFondValue -or $currentGroupValue) {
-            Write-Host "ƒл€ группы $groupNumber на листе $GroupSheetName дл€ $incomingName в мес€це $monthName уже есть значение, взнос будет пропущен!" -ForegroundColor Red
+            Write-Host "ƒл€ группы $groupNumber на листе $GroupSheetName дл€ $incomingName в мес€це $monthName уже есть значение: $currentCommonFondValue и $currentGroupValue, взнос будет пропущен!" -ForegroundColor Red
             continue
         }
 
@@ -109,7 +109,10 @@ Function Main() {
             $currentCommonFondValueCell.Value2 = $CommonFondSum
 
             $currentGroupValueCell.Interior.ColorIndex = 4
-            $currentGroupValueCell.Value2 = $GroupFondSum
+            if($GroupFondSum){
+                $currentGroupValueCell.Value2 = $GroupFondSum
+            }
+
         }else {
             Write-Host "ƒл€ $incomingName $groupNumber гр. в мес€це '$monthName' сумма не равна ежемес€чному взносу, поэтому она будет записана в фонд сада дл€ дальнейшей ручной разбивки" -ForegroundColor Cyan
             $currentCommonFondValueCell.Interior.ColorIndex = 6
@@ -143,8 +146,7 @@ Function Main() {
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel
-    Write-Host "ƒл€ завершени€ нажмите Enter" -ForegroundColor Blue
-    Read-Host
+    Pause
 
 }
 

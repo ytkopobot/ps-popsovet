@@ -172,6 +172,8 @@ Function Main() {
     [System.Runtime.Interopservices.Marshal]::ReleaseComObject($excel) | Out-Null
 
     Remove-Variable -Name excel
+
+    Pause
 }
 
 Function FindAdress($Name, $commonListSheet) {

@@ -95,7 +95,11 @@ Function Main() {
         $currentGroupValue = $currentGroupValueCell.Value2
 
         if ($currentCommonFondValue -or $currentGroupValue) {
-            Write-Host "ƒл€ группы $groupNumber на листе $GroupSheetName дл€ $incomingName в мес€це $monthName уже есть значение: $currentCommonFondValue и $currentGroupValue, взнос будет пропущен!" -ForegroundColor Red
+            $currentCommonFondValueCell.Interior.ColorIndex = 3
+            $currentGroupValueCell.Interior.ColorIndex = 3
+            Write-Host ""
+            Write-Host "ƒл€ группы $groupNumber дл€ $incomingName в мес€це $monthName уже есть значение: $currentCommonFondValue и $currentGroupValue, взнос $payment будет пропущен!" -ForegroundColor Red
+            Write-Host ""
             continue
         }
 

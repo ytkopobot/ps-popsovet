@@ -63,14 +63,12 @@ Function Main() {
     if (-Not [System.IO.File]::Exists($newFile)) {
         New-Item $newFile | Out-Null
     }
-    Add-Content $newFile "#TYPE 7"
-    Add-Content $newFile "#SERVICE 40334"
 
     $overalSum = 0
-    $rows = 0
     $skips = 0
     $n = 1
     Write-Host ""
+    $lines = New-Object System.Collections.ArrayList
     for ($i = $startRow; $i -le $endRow; $i++)
     {
         $CommonFondSum = $groupsheet.Cells.Item($i, $CommonFondColumn).Value2
@@ -107,25 +105,22 @@ Function Main() {
         }
 
         if($Tag -eq 0){
-            Write-Host "$n. $Name   начислено 0   указан 0" -ForegroundColor Cyan
-            Add-Content $newFile "$Name;$Adress;$Contract;0.00"
-            $rows++
+            Write-Host "$n. $Name   начислено 0   строка помечена 0" -ForegroundColor Cyan
+            $lines.Add("$Name;$Adress;$Contract;0.00") > $null
             $n++
             continue;
         }
 
         if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {
             Write-Host "$n. $Name   начислено 0   долга нет" -ForegroundColor Cyan
-            Add-Content $newFile "$Name;$Adress;$Contract;0.00"
-            $rows++
+            $lines.Add("$Name;$Adress;$Contract;0.00") > $null
             $n++
             continue;
         }
 
         if ($currentDebt -lt 0) {
             Write-Host "$n. $Name   начислено 0   долг отрицательный" -ForegroundColor Cyan
-            Add-Content $newFile "$Name;$Adress;$Contract;0.00"
-            $rows++
+            $lines.Add("$Name;$Adress;$Contract;0.00") > $null
             $n++
             continue;
         }
@@ -145,17 +140,23 @@ Function Main() {
         }
 
         $formatted = FormatNumber $currentSum
-        Add-Content $newFile "$Name;$Adress;$Contract;$formatted"
+        $lines.Add("$Name;$Adress;$Contract;$formatted") > $null
         $overalSum = $overalSum + $currentSum
         $n++
-        $rows++
     }
 
+    Clear-Content $newFile
     Add-Content $newFile "#FILESUM $(FormatNumber $overalSum)"
+    Add-Content $newFile "#TYPE 7"
+    Add-Content $newFile "#SERVICE 40334"
+
+    foreach ($element in $lines) {
+        Add-Content $newFile $element
+    }
 
     Write-Host
     Write-Host "Итого:" -BackgroundColor Green
-    Write-Host "Добавлено  $rows строк" -ForegroundColor Green
+    Write-Host "Добавлено  $($lines.Count) строк" -ForegroundColor Green
     Write-Host "Пропущено  $skips строк" -ForegroundColor Green
     Write-Host "Общая сумма  $overalSum" -ForegroundColor Green
     Write-Host "Результат $newFile" -ForegroundColor Green

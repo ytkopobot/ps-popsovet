@@ -69,6 +69,17 @@ Function Main() {
     $n = 1
     Write-Host ""
     $lines = New-Object System.Collections.ArrayList
+
+    $FindedMonth = $groupSheet.Cells.Item($GroupMonthRow, 1).EntireRow.Find($monthName)
+    if (-Not$FindedMonth) {
+        Write-Host "ƒл€ группы на листе $GroupSheetName в строке $GroupMonthRow не найден мес€ц $monthName" -ForegroundColor Magenta
+        exit
+    }
+
+    $groupSheet.Columns($FindedMonth.Column).Hidden = $false
+    $groupSheet.Columns($FindedMonth.Column + 1).Hidden = $false
+    $groupSheet.Columns($FindedMonth.Column + 2).Hidden = $false
+
     for ($i = $startRow; $i -le $endRow; $i++)
     {
         $CommonFondSum = $groupsheet.Cells.Item($i, $CommonFondColumn).Value2
@@ -109,6 +120,13 @@ Function Main() {
             $lines.Add("$Name;$Adress;$Contract;0.00") > $null
             $n++
             continue;
+        }
+
+
+        # ƒелаем начислени€ в указанный мес€ц
+        $currentMonthOutcomeCell = $groupSheet.Cells.Item($i, $FindedMonth.Column)
+        if(-Not$currentMonthOutcomeCell.Value2){
+            $currentMonthOutcomeCell.Value2 = $CommonFondSum + $GroupFondSum
         }
 
         if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {

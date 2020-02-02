@@ -195,8 +195,7 @@ Function Main() {
     Write-Host "Результат $newFile" -ForegroundColor Green
 
     #saving & closing the file
-    #adjusting the column width so all data's properly visible
-    $excel.DisplayAlerts = $false
+    $excel.DisplayAlerts = $true
 
     [System.GC]::Collect()
     [System.GC]::WaitForPendingFinalizers()

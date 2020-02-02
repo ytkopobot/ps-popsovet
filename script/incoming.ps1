@@ -63,7 +63,7 @@ Function Main() {
 
     #saving & closing the file
     #adjusting the column width so all data's properly visible
-    $excel.DisplayAlerts = $false
+    $excel.DisplayAlerts = $true
     # $workbook.SaveAs($outputpath, 51, [Type]::Missing, [Type]::Missing, $false, $false, 1, 2)
 
     [System.GC]::Collect()

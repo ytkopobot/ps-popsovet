@@ -15,6 +15,7 @@ $AddressCell = 6
 
 #Файл с группами содержит информацию для групп
 $GroupExcel = "N группа.xlsx"
+$GroupExcelForPublic = "N группа D.xlsx"
 $GroupSheetName = "Взносы"
 $GroupStartRow = 6 # c какой строчки начинаются фамилии
 $TagColumn = 1   # тэг для строчки
@@ -23,6 +24,8 @@ $CommonFondColumn = 3   # Сумма взноса в фонд сада
 $GroupFondColumn = 4  # Сумма взноса в фонд группы
 $WriteOffColumn = 42 # списание задолженности
 $DebtColumn = 43  # Сумма долга
+$CalcCommonDebtColumn = 44  # Сумма долга
+$CalcGroupDebtColumn = 45  # Сумма долга
 $GroupMonthRow = 4
 
 
@@ -44,4 +47,5 @@ Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetNam
     IncomingFolder, PaymentIdCell, IncomingNameCell, IncomingGroupCell, IncomingLogSheetName, IncomingPaymentDateCell, IncomingPaymentCell, `
     GroupNumberCell, xlCellTypeLastCell, TagColumn, NameCell, ContractCell, AddressCell, `
     OutcomingFilename, GroupTitleCell, SGParts,`
-    GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, WriteOffColumn, GroupSheetName, NameColumn, DebtColumn, GroupMonthRow
+    GroupExcel, GroupExcelForPublic, GroupStartRow, CommonFondColumn, GroupFondColumn, WriteOffColumn, GroupSheetName, NameColumn, DebtColumn, GroupMonthRow, `
+    CalcCommonDebtColumn, CalcGroupDebtColumn

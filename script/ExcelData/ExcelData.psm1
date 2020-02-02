@@ -21,6 +21,7 @@ $TagColumn = 1   # тэг для строчки
 $NameColumn = 2   # Имя
 $CommonFondColumn = 3   # Сумма взноса в фонд сада
 $GroupFondColumn = 4  # Сумма взноса в фонд группы
+$WriteOffColumn = 42 # списание задолженности
 $DebtColumn = 43  # Сумма долга
 $GroupMonthRow = 4
 
@@ -43,4 +44,4 @@ Export-ModuleMember -Variable ExcelFilename, OutcomingFolder, CommonListSheetNam
     IncomingFolder, PaymentIdCell, IncomingNameCell, IncomingGroupCell, IncomingLogSheetName, IncomingPaymentDateCell, IncomingPaymentCell, `
     GroupNumberCell, xlCellTypeLastCell, TagColumn, NameCell, ContractCell, AddressCell, `
     OutcomingFilename, GroupTitleCell, SGParts,`
-    GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, GroupSheetName, NameColumn, DebtColumn, GroupMonthRow
+    GroupExcel, GroupStartRow, CommonFondColumn, GroupFondColumn, WriteOffColumn, GroupSheetName, NameColumn, DebtColumn, GroupMonthRow

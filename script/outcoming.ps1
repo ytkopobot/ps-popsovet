@@ -82,9 +82,8 @@ Function Main() {
 
     for ($i = $startRow; $i -le $endRow; $i++)
     {
-        $CommonFondSum = $groupsheet.Cells.Item($i, $CommonFondColumn).Value2
-        $GroupFondSum = $groupsheet.Cells.Item($i, $GroupFondColumn).Value2
-        $currentDebt = $groupsheet.Cells.Item($i, $DebtColumn).Value2
+        $CommonFondSum = [convert]::ToInt32($groupsheet.Cells.Item($i, $CommonFondColumn).Value2)
+        $GroupFondSum =  [convert]::ToInt32($groupsheet.Cells.Item($i, $GroupFondColumn).Value2)
         $Name = $groupsheet.Cells.Item($i, $NameColumn).Value2
         $Tag = $groupsheet.Cells.Item($i, $TagColumn).Value2
         if (-Not$Name) {
@@ -128,6 +127,7 @@ Function Main() {
         if(-Not$currentMonthOutcomeCell.Value2){
             $currentMonthOutcomeCell.Value2 = $CommonFondSum + $GroupFondSum
         }
+        $currentDebt = [convert]::ToInt32($groupsheet.Cells.Item($i, $DebtColumn).Value2)
 
         if ((-Not$currentDebt) -or ($currentDebt -eq 0)) {
             Write-Host "$n. $Name   начислено 0   долга нет" -ForegroundColor Cyan
@@ -148,10 +148,25 @@ Function Main() {
         if ($fondSum -le 0) {
             Write-Host "$n. $Name    начислено $currentSum   сумма взноса не установлена, начислен только долг"  -ForegroundColor Cyan
         } else {
-            if ($currentDebt -gt $fondSum * 3) {
+            $writeOffValue = $currentDebt - $fondSum * 3
+            if ($writeOffValue -gt 0) {
                 $currentSum = $fondSum * 3
-                Write-Host "$n. $Name   начислено $currentSum   сумма долга превышает трЄхмес€чный размер платежей, необходимо списать " -ForegroundColor Cyan  -nonewline
-                Write-Host "$( $currentDebt - $fondSum * 3 )" -BackgroundColor DarkRed  -ForegroundColor White
+
+                # —писание задолженности
+                $writeOffCell = $groupSheet.Cells.Item($i, $WriteOffColumn)
+                if(-Not$writeOffCell.Value2){
+                    $writeOffCell.Formula = "=$writeOffValue"
+                }
+                else{
+                    if($writeOffCell.HasFormula){
+                        $writeOffCell.Formula = $writeOffCell.Formula + "+$writeOffValue"
+                    }
+                    else{
+                        $writeOffCell.Formula = "=$($writeOffCell.Value2) + $writeOffValue"
+                    }
+                }
+                Write-Host "$n. $Name   начислено $currentSum, списано " -ForegroundColor Cyan  -nonewline
+                Write-Host "$writeOffValue" -BackgroundColor DarkRed  -ForegroundColor White
             }else{
                 Write-Host "$n. $Name   начислено $currentSum" -ForegroundColor Green
             }
